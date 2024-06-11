@@ -10,8 +10,9 @@ class MainNavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return BottomNavigationBar(
+      currentIndex: ref.watch(podcastProvider).navIndex,
       elevation: 8.0,
-      items: const [
+      items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           icon: Icon(Icons.home_rounded),
           label: 'Home',

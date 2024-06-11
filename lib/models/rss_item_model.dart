@@ -1,43 +1,39 @@
+import 'package:openair/providers/podcast_provider.dart';
 import 'package:webfeed/domain/itunes/itunes.dart';
 import 'package:webfeed/domain/rss_enclosure.dart';
 
 class RssItemModel {
-  late final String? name;
-  late final String? organisation;
-  late final String? publishedDuration;
-  late final DateTime? publishedDate;
-  late final String? title;
-  late final String? description;
-  late final String? audioDuration;
-  late final bool? isDownloaded;
-  late final Itunes? itunes;
-  late final RssEnclosure? enclosure;
+  String? guid;
+  String? name;
+  DateTime? publishedDate;
+  String? title;
+  String? description;
+  String? subTitle;
+  DownloadStatus? downloaded;
+  PlayingStatus? playingStatus;
+  Itunes? itunes;
+  RssEnclosure? enclosure;
 
   RssItemModel({
+    required this.guid,
     required this.name,
-    required this.organisation,
-    required this.publishedDuration,
     required this.publishedDate,
     required this.title,
     required this.description,
-    required this.audioDuration,
-    required this.isDownloaded,
+    required this.subTitle,
+    required this.downloaded,
+    this.playingStatus = PlayingStatus.detail,
     required this.itunes,
     required this.enclosure,
   });
 
+  get getGuid => guid;
+
+  set setGuid(guid) => this.guid = guid;
+
   get getName => name;
 
-  set setName(name) => name = name;
-
-  get getOrganisation => organisation;
-
-  set setOrganisation(organisation) => this.organisation = organisation;
-
-  get getPublishedDuration => publishedDuration;
-
-  set setPublishedDuration(publishedDuration) =>
-      this.publishedDuration = publishedDuration;
+  set setName(name) => this.name = name;
 
   get getPublishedDate => publishedDate;
 
@@ -51,13 +47,17 @@ class RssItemModel {
 
   set setDescription(description) => this.description = description;
 
-  get getAudioDuration => audioDuration;
+  get getSubTitle => subTitle;
 
-  set setAudioDuration(audioDuration) => this.audioDuration = audioDuration;
+  set setSubTitle(subTitle) => this.subTitle = subTitle;
 
-  get getIsDownloaded => isDownloaded;
+  get getDownloaded => downloaded;
 
-  set setIsDownloaded(isDownloaded) => this.isDownloaded = isDownloaded;
+  set setDownloaded(downloaded) => this.downloaded = downloaded;
+
+  get getPlayingStatus => playingStatus;
+
+  set setPlayingStatus(playingStatus) => this.playingStatus = playingStatus;
 
   get getItunes => itunes;
 

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openair/models/rss_item_model.dart';
 import 'package:openair/providers/podcast_provider.dart';
 
 class PodcastDetail extends ConsumerWidget {
   const PodcastDetail({
     super.key,
+    this.rssItem,
   });
+
+  final RssItemModel? rssItem;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,15 +24,15 @@ class PodcastDetail extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Image.network(
-                      height: 62.0,
-                      width: 62.0,
+                      height: 94.0,
+                      width: 94.0,
                       fit: BoxFit.contain,
-                      ref.watch(podcastProvider).feed!.image!.url!,
+                      ref.watch(podcastProvider).feed.image!.url!,
                     ),
                   ),
                   Padding(
@@ -40,11 +44,12 @@ class PodcastDetail extends ConsumerWidget {
                         Text(
                           ref.watch(podcastProvider).podcastName,
                           style: const TextStyle(
-                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 26.0,
                           ),
                         ),
                         Text(
-                          '${ref.watch(podcastProvider).selectedItem!.pubDate!.day}/${ref.watch(podcastProvider).selectedItem!.pubDate!.month}/${ref.watch(podcastProvider).selectedItem!.pubDate!.year}',
+                          '${ref.watch(podcastProvider).selectedItem!.getPublishedDate!.day}/${ref.watch(podcastProvider).selectedItem!.getPublishedDate!.month}/${ref.watch(podcastProvider).selectedItem!.getPublishedDate!.year}',
                         ),
                       ],
                     ),
@@ -56,6 +61,7 @@ class PodcastDetail extends ConsumerWidget {
                 textAlign: TextAlign.start,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
                 ),
               ),
               Padding(

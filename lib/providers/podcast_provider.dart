@@ -5,11 +5,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:openair/models/rss_item_model.dart';
+import 'package:openair/views/player/main_player.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:webfeed/webfeed.dart';
-
-import 'package:openair/views/main_player.dart';
+import 'package:webfeed/domain/rss_feed.dart';
 
 final podcastProvider = ChangeNotifierProvider<PodcastProvider>(
   (ref) {
@@ -19,7 +19,16 @@ final podcastProvider = ChangeNotifierProvider<PodcastProvider>(
 
 enum DownloadStatus { downloaded, downloading, notDownloaded }
 
+enum PlayingStatus { detail, buffering, playing }
+
+// /data/user/0/com.liquidhive.openair/app_flutter/downloads/
+// VMP1366825685.mp3
+
 class PodcastProvider with ChangeNotifier {
+  List<String> downloadingPodcasts = [];
+
+  late RssFeed feed;
+
   late AudioPlayer player;
   late StreamSubscription? mPlayerSubscription;
 
@@ -30,11 +39,7 @@ class PodcastProvider with ChangeNotifier {
   late String podcastTitle;
   late String podcastSubtitle;
 
-  late int podcastTimeInHours;
-  late int podcastTimeInMinutes;
-  late int podcastTimeInSeconds;
-
-  late String audioState;
+  late String audioState; // Play, Pause, Stop
   late String loadState; // Play, Load, Detail
 
   late Duration podcastPosition;
@@ -44,38 +49,30 @@ class PodcastProvider with ChangeNotifier {
   late String currentPlaybackPosition;
   late String currentPlaybackRemainingTime;
 
-  late RssFeed _feed;
-  late RssItem? _selectedItem;
-
-  bool isSelectedRss = false;
+  // todo remove me
+  // late RssFeed _feed;
+  late RssItemModel? selectedItem;
 
   final String storagePath = 'openair/downloads';
 
-  late Map<String, bool> downloadStatus;
-
   late Directory directory;
 
-  int navIndex = 1;
+  int navIndex = 0;
 
-  void setNavIndex(int navIndex) {
-    this.navIndex = navIndex;
-    notifyListeners();
-  }
+  bool isPodcastSelected = false;
 
+  List<RssItemModel> items = [];
+
+  // todo remove me
   /// Getters and setters are defined below.
 
-  RssFeed? get feed => _feed;
+  // RssFeed? get feed => _feed;
 
-  set feed(RssFeed? value) => _feed = value!;
-
-  get selectedItem => _selectedItem;
-
-  set setSelectedItem(RssItem rssItem) => _selectedItem = rssItem;
+  // set feed(RssFeed? value) => _feed = value!;
 
   Future<void> initial(
     BuildContext context,
   ) async {
-    // removeAllDownloadedPodcasts();
     player = AudioPlayer();
 
     this.context = context;
@@ -91,14 +88,20 @@ class PodcastProvider with ChangeNotifier {
     currentPlaybackPosition = '00:00:00';
     currentPlaybackRemainingTime = '00:00:00';
 
+    selectedItem = null;
+
     audioState = 'Pause';
     loadState = 'Detail'; // Play, Load, Detail
-
-    downloadStatus = {};
 
     directory = await getApplicationDocumentsDirectory();
   }
 
+  void setNavIndex(int navIndex) {
+    this.navIndex = navIndex;
+    notifyListeners();
+  }
+
+  // todo testing purposes
   Future<void> removeAllDownloadedPodcasts() async {
     Directory downloadsDirectory =
         Directory('/data/user/0/com.liquidhive.openair/app_flutter/downloads');
@@ -109,36 +112,31 @@ class PodcastProvider with ChangeNotifier {
         file.deleteSync();
       }
     }
+
+    debugPrint('Removed all downloaded podcasts');
+    downloadingPodcasts.clear();
+
+    notifyListeners();
   }
 
-  Icon getDownloadIcon(DownloadStatus downloadStatus, bool isDownloaded) {
+  Icon getDownloadIcon(DownloadStatus downloadStatus) {
     Icon icon;
 
-    if (isDownloaded) {
-      icon = const Icon(Icons.downloading_rounded);
-    } else {
-      if (downloadStatus == DownloadStatus.notDownloaded) {
+    switch (downloadStatus) {
+      case DownloadStatus.notDownloaded:
         icon = const Icon(Icons.download_rounded);
-      } else {
+        break;
+      case DownloadStatus.downloading:
+        icon = const Icon(Icons.downloading_rounded);
+        break;
+      case DownloadStatus.downloaded:
         icon = const Icon(Icons.download_done_rounded);
-      }
+        break;
+      default:
+        icon = const Icon(Icons.download_rounded);
     }
 
     return icon;
-  }
-
-  // FIXME: This is not working
-  Future<DownloadStatus> isPodcastDownloaded({
-    required RssItem item,
-  }) async {
-    String mp3Name = formateDownloadedPodcastName(item.enclosure!.url!);
-    bool isDownloaded = await isMp3FileDownloaded(mp3Name);
-
-    if (isDownloaded) {
-      return DownloadStatus.downloaded;
-    } else {
-      return DownloadStatus.notDownloaded;
-    }
   }
 
   Future<void> bannerControllerClicked() async {
@@ -152,16 +150,24 @@ class PodcastProvider with ChangeNotifier {
 
   void audioPlayerSheetCloseButtonClicked() {}
 
-  // /data/user/0/com.liquidhive.openair/app_flutter/downloads/
-  // VMP1366825685.mp3
-
   Future<List<String>> setPodcastStream(
-    String? audioUrl,
-    String? type,
+    RssItemModel rssItem,
   ) async {
     loadState = 'Load';
 
-    String mp3Name = formateDownloadedPodcastName(audioUrl!);
+    // ignore: prefer_conditional_assignment
+    if (selectedItem == null) {
+      selectedItem = rssItem;
+    }
+
+    if (rssItem != selectedItem) {
+      selectedItem!.setPlayingStatus = PlayingStatus.detail;
+    }
+
+    rssItem.setPlayingStatus = PlayingStatus.buffering;
+    notifyListeners();
+
+    String mp3Name = formateDownloadedPodcastName(rssItem.enclosure!.url!);
     bool isDownloaded = await isMp3FileDownloaded(mp3Name);
 
     List<String> result = [mp3Name, isDownloaded.toString()];
@@ -169,29 +175,29 @@ class PodcastProvider with ChangeNotifier {
     isDownloaded
         ? {
             await player.setSource(DeviceFileSource(
-              audioUrl,
-              mimeType: type,
+              rssItem.enclosure!.url!,
+              mimeType: rssItem.enclosure!.type,
             ))
           }
         : await player.setSource(UrlSource(
-            audioUrl,
-            mimeType: type,
+            rssItem.enclosure!.url!,
+            mimeType: rssItem.enclosure!.type,
           ));
 
     return result;
   }
 
-  void playerPlayButtonClicked(
-    RssItem rssItem,
-  ) async {
-    List<String> result = await setPodcastStream(
-      rssItem.enclosure!.url,
-      rssItem.enclosure!.type,
-    );
+  void setShowSelectedPodcast() {
+    isPodcastSelected = true;
+    notifyListeners();
+  }
 
-    // todo Modify the play button in the card widget to be dynamic
-    debugPrint('state: ${player.state}');
-    debugPrint('isDownloaded: ${result[1]}');
+  void playerPlayButtonClicked(
+    RssItemModel rssItem,
+  ) async {
+    List<String> result = await setPodcastStream(rssItem);
+
+    isPodcastSelected = true;
 
     if (player.state == PlayerState.paused ||
         player.state == PlayerState.stopped) {
@@ -206,20 +212,19 @@ class PodcastProvider with ChangeNotifier {
       }
     }
 
+    rssItem.setPlayingStatus = PlayingStatus.playing;
+
     audioState = 'Play';
     loadState = 'Play';
-    notifyListeners();
     updatePlaybackBar();
 
-    setSelectedItem = rssItem;
-    isSelectedRss = true;
+    selectedItem = rssItem;
     notifyListeners();
   }
 
   void updatePlaybackBar() {
-    player.onDurationChanged.listen((Duration p) {
-      podcastDuration = p;
-      // todo I removed the notifyListeners(); here
+    player.getDuration().then((Duration? value) {
+      podcastDuration = value!;
     });
 
     player.onPositionChanged.listen((Duration p) {
@@ -242,7 +247,6 @@ class PodcastProvider with ChangeNotifier {
       // TODO Add marking podcast as completed automatically here
       if (playerState == PlayerState.completed) {
         audioState = 'Stop';
-        notifyListeners();
       }
     });
   }
@@ -259,12 +263,29 @@ class PodcastProvider with ChangeNotifier {
     return result;
   }
 
-  String getPodcastDuration(RssItem rssItem) {
+  String getPodcastDuration(RssItemModel rssItem) {
     return "${rssItem.itunes!.duration!.inHours != 0 ? '${rssItem.itunes!.duration!.inHours} hr ' : ''}${rssItem.itunes!.duration!.inMinutes != 0 ? '${rssItem.itunes!.duration!.inMinutes} min' : ''}";
   }
 
+  String? displayPodcastAudioInfo(RssItemModel rssItem) {
+    String? result;
+
+    if (rssItem == selectedItem) {
+      if (audioState == 'Pause') {
+        result = '$currentPlaybackRemainingTime left';
+      }
+    } else {
+      result = getPodcastDuration(rssItem);
+    }
+
+    return result!;
+  }
+
+  // todo this is the method that needs to be called when the pause button is pressed.
   String formatCurrentPlaybackRemainingTime(
-      Duration timelinePosition, Duration timelineDuration) {
+    Duration timelinePosition,
+    Duration timelineDuration,
+  ) {
     int remainingSeconds =
         timelineDuration.inSeconds - timelinePosition.inSeconds;
 
@@ -283,7 +304,11 @@ class PodcastProvider with ChangeNotifier {
 
   // FIXME add playlist here
 
-  DownloadStatus getDownloadStatus(String filename) {
+  Future<DownloadStatus> getDownloadStatus(String filename) async {
+    if (await isMp3FileDownloaded(filename)) {
+      return DownloadStatus.downloaded;
+    }
+
     return DownloadStatus.notDownloaded;
   }
 
@@ -302,8 +327,6 @@ class PodcastProvider with ChangeNotifier {
 
     final absolutePath = path.joinAll([directory.path, storagePath, filename]);
 
-    debugPrint('absolutePath: $absolutePath');
-
     return absolutePath;
   }
 
@@ -319,33 +342,36 @@ class PodcastProvider with ChangeNotifier {
     return filename;
   }
 
-  void playerDownloadButtonClicked(RssItem item) async {
-    debugPrint('Downloading podcast');
+  // todo add playlist here
+
+  void playerDownloadButtonClicked(RssItemModel item) async {
+    item.setDownloaded = DownloadStatus.downloading;
+    downloadingPodcasts.add(item.getGuid);
+
+    notifyListeners();
 
     final response = await http.get(Uri.parse(item.enclosure!.url!));
-    debugPrint('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       String filename = formateDownloadedPodcastName(item.enclosure!.url!);
-      debugPrint('filename: $filename');
 
       final file = File(await getDownloadsPath(filename));
 
       await file.writeAsBytes(response.bodyBytes).whenComplete(
         () {
-          debugPrint('Podcast downloaded successfully!');
-          downloadStatus[filename] = true;
+          item.setDownloaded = DownloadStatus.downloaded;
+          downloadingPodcasts.remove(item.getGuid);
+          notifyListeners();
         },
       );
-
-      notifyListeners();
     } else {
       throw Exception(
           'Failed to download podcast (Status Code: ${response.statusCode})');
     }
   }
 
-  // todo sup
+  // todo when the podcast is pause, display the remaining time of the selected podcast
+  // Show the remaining time of the podcast when 30 seconds has passed
 
   Future<void> playerPauseButtonClicked() async {
     audioState = 'Pause';
@@ -354,6 +380,8 @@ class PodcastProvider with ChangeNotifier {
     if (player.state == PlayerState.playing) {
       await player.pause();
     }
+
+    selectedItem!.setPlayingStatus = PlayingStatus.detail;
 
     notifyListeners();
   }
