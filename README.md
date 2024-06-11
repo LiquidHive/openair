@@ -19,7 +19,7 @@ Clone the repository: https://github.com/LiquidHive/openair.git
 
 Read the contribution guidelines: [link to your contribution guidelines document (optional)]
 
-Join the discussion: [link to your community forum/chat (optional)]
+Join the discussion: [https://github.com/LiquidHive/openair/discussions (Github discussion page)]
 
 Getting Started
 
