@@ -8,13 +8,12 @@ class MainPlayer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    const double imageSize = 300.0;
+
     return Scaffold(
       appBar: AppBar(),
       body: Column(
         children: [
-          // Podcast artwork
-
-          // Episode title and description
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 15.0),
             child: Column(
@@ -40,8 +39,8 @@ class MainPlayer extends ConsumerWidget {
                           fit: BoxFit.cover, // Adjust fit as needed
                         ),
                       ),
-                      width: 512.0,
-                      height: 512.0,
+                      width: imageSize,
+                      height: imageSize,
                     ),
                   ),
                 ),
@@ -69,8 +68,7 @@ class MainPlayer extends ConsumerWidget {
                       .podcastCurrentPositionInMilliseconds,
                   onChanged: (value) =>
                       // TODO: Add slider functionality
-                      // ref.read(podcastProvider).mainPlayerSliderClicked(value),
-                      0.0,
+                      ref.read(podcastProvider).mainPlayerSliderClicked(value),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -100,10 +98,28 @@ class MainPlayer extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                // Rewind button
                 IconButton(
-                  onPressed: () => {}, // Add rewind functionality
-                  icon: const Icon(Icons.fast_rewind_rounded),
+                  onPressed: () =>
+                      ref.read(podcastProvider.notifier).rewindButtonClicked(),
+                  icon: const SizedBox(
+                    width: 52.0,
+                    height: 52.0,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(Icons.fast_rewind_rounded),
+                        Positioned(
+                          top: 30.0,
+                          left: 25.0,
+                          right: 0.0,
+                          child: Icon(Icons.timer_10_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+                // Play/pause button
                 IconButton(
                   onPressed: () async {
                     ref.watch(podcastProvider).audioState == 'Play'
@@ -119,9 +135,27 @@ class MainPlayer extends ConsumerWidget {
                       : const Icon(Icons.play_arrow_rounded),
                   iconSize: 48.0,
                 ),
+                // Fast forward button
                 IconButton(
-                  onPressed: () => {}, // Add fast-forward functionality
-                  icon: const Icon(Icons.fast_forward_rounded),
+                  onPressed: () => ref
+                      .read(podcastProvider.notifier)
+                      .fastForwardButtonClicked(),
+                  icon: const SizedBox(
+                    width: 52.0,
+                    height: 52.0,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(Icons.fast_forward_rounded),
+                        Positioned(
+                          top: 30.0,
+                          left: 25.0,
+                          right: 0.0,
+                          child: Icon(Icons.timer_10_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

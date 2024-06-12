@@ -163,6 +163,13 @@ class PodcastProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void rewindButtonClicked() {
+    // TODO: Rewind 10 seconds
+    if (podcastPosition.inSeconds - 10 > 0) {
+      player.seek(Duration(seconds: podcastPosition.inSeconds - 10));
+    }
+  }
+
   void playerPlayButtonClicked(
     RssItemModel rssItem,
   ) async {
@@ -193,6 +200,27 @@ class PodcastProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> playerPauseButtonClicked() async {
+    audioState = 'Pause';
+    loadState = 'Detail';
+
+    if (player.state == PlayerState.playing) {
+      await player.pause();
+    }
+
+    selectedItem!.setPlayingStatus = PlayingStatus.paused;
+
+    notifyListeners();
+  }
+
+  void fastForwardButtonClicked() {
+    // TODO: Needs to check if the podcast is at the end
+
+    if (podcastPosition.inSeconds + 10 < podcastDuration.inSeconds) {
+      player.seek(Duration(seconds: podcastPosition.inSeconds + 10));
+    }
+  }
+
   void updatePlaybackBar() {
     player.getDuration().then((Duration? value) {
       podcastDuration = value!;
@@ -208,6 +236,12 @@ class PodcastProvider with ChangeNotifier {
 
       podcastCurrentPositionInMilliseconds =
           podcastPosition.inMilliseconds / podcastDuration.inMilliseconds;
+
+      // debugPrint(
+      //     ' podcastPosition.inMilliseconds: ${podcastPosition.inMilliseconds.toString()}');
+
+      // debugPrint(
+      //     'podcastCurrentPositionInMilliseconds: ${podcastCurrentPositionInMilliseconds.toString()}');
 
       notifyListeners();
     });
@@ -375,24 +409,14 @@ class PodcastProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // TODO: When the podcast is pause, display the remaining time of the selected podcast
-  // Show the remaining time of the podcast when 30 seconds has passed
-
-  Future<void> playerPauseButtonClicked() async {
-    audioState = 'Pause';
-    loadState = 'Detail';
-
-    if (player.state == PlayerState.playing) {
-      await player.pause();
-    }
-
-    selectedItem!.setPlayingStatus = PlayingStatus.paused;
-
-    notifyListeners();
-  }
-
+  // Update the main player slider position based on the slider value.
   void mainPlayerSliderClicked(double sliderValue) {
-    debugPrint(sliderValue.toString());
+    player.seek(
+      Duration(
+        milliseconds: (sliderValue * podcastDuration.inMilliseconds).toInt(),
+      ),
+    );
+    notifyListeners();
   }
 
   void mainPlayerRewindClicked() {}
