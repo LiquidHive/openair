@@ -126,7 +126,8 @@ class CardWidget extends ConsumerWidget {
                       // Playlist button
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.playlist_add_check_rounded),
+                        // TODO: THIS -> playlist_add_check_rounded
+                        icon: const Icon(Icons.playlist_add),
                       ),
                       // Download button
                       IconButton(

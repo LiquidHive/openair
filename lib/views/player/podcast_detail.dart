@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:openair/models/rss_item_model.dart';
 import 'package:openair/providers/podcast_provider.dart';
+import 'package:openair/views/widgets/play_button_widget.dart';
 
 class PodcastDetail extends ConsumerWidget {
   const PodcastDetail({
@@ -26,15 +27,22 @@ class PodcastDetail extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Image.network(
-                      height: 94.0,
-                      width: 94.0,
-                      fit: BoxFit.contain,
-                      ref.watch(podcastProvider).feed.image!.url!,
-                    ),
-                  ),
+                   Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                ref.watch(podcastProvider).feed.image!.url!,
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          width: 92.0,
+                          height: 92.0,
+                        ),
+                      ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Column(
@@ -69,31 +77,25 @@ class PodcastDetail extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 1.0,
-                        shape: const StadiumBorder(
-                          side: BorderSide(
-                            width: 1.0,
+                    SizedBox(
+                      width: 200.0,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          elevation: 1.0,
+                          shape: const StadiumBorder(
+                            side: BorderSide(
+                              width: 1.0,
+                            ),
                           ),
                         ),
-                      ),
-                      onPressed: () {},
-                      child: Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 5.0,
+                        onPressed: () => ref
+                            .read(podcastProvider.notifier)
+                            .playerPlayButtonClicked(
+                              rssItem!,
                             ),
-                            child: Icon(Icons.play_arrow_rounded),
-                          ),
-                          Text(
-                            ref
-                                .read(podcastProvider.notifier)
-                                .getPodcastDuration(
-                                    ref.watch(podcastProvider).selectedItem!),
-                          ),
-                        ],
+                        child: PlayButtonWidget(
+                          rssItem: rssItem!,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -101,8 +103,52 @@ class PodcastDetail extends ConsumerWidget {
                       icon: const Icon(Icons.playlist_add),
                     ),
                     IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.download_sharp),
+                      onPressed: () {
+                        if (rssItem!.getDownloaded ==
+                            DownloadStatus.notDownloaded) {
+                          ref
+                              .read(podcastProvider.notifier)
+                              .playerDownloadButtonClicked(rssItem!);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Downloading \'${rssItem!.title}\''),
+                            ),
+                          );
+                        } else if (rssItem!.getDownloaded ==
+                            DownloadStatus.downloaded) {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => SizedBox(
+                              width: double.infinity,
+                              height: 50.0,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  ref
+                                      .read(podcastProvider.notifier)
+                                      .playerRemoveDownloadButtonClicked(
+                                          rssItem!);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Removed \'${rssItem!.title}\''),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.delete),
+                                label: const Text('Remove download'),
+                              ),
+                            ),
+                          );
+                        } else {
+                          // TODO: Add cancel download
+                        }
+                      },
+                      icon: ref
+                          .read(podcastProvider.notifier)
+                          .getDownloadIcon(rssItem!.getDownloaded!),
                     ),
                     IconButton(
                       onPressed: () {},
