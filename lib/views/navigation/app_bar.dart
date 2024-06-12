@@ -27,7 +27,6 @@ AppBar appBar(WidgetRef ref) {
         child: IconButton(
           onPressed: () {
             // TODO: Running test here to bring up the banner player
-            // ref.read(podcastProvider.notifier).isPodcastSelected = true;
             ref.read(podcastProvider.notifier).playerPauseButtonClicked();
           },
           icon: const Icon(Icons.person),

@@ -19,10 +19,7 @@ final podcastProvider = ChangeNotifierProvider<PodcastProvider>(
 
 enum DownloadStatus { downloaded, downloading, notDownloaded }
 
-enum PlayingStatus { detail, buffering, playing }
-
-// /data/user/0/com.liquidhive.openair/app_flutter/downloads/
-// VMP1366825685.mp3
+enum PlayingStatus { detail, buffering, playing, paused }
 
 class PodcastProvider with ChangeNotifier {
   List<String> downloadingPodcasts = [];
@@ -49,8 +46,6 @@ class PodcastProvider with ChangeNotifier {
   late String currentPlaybackPosition;
   late String currentPlaybackRemainingTime;
 
-  // todo remove me
-  // late RssFeed _feed;
   late RssItemModel? selectedItem;
 
   final String storagePath = 'openair/downloads';
@@ -63,12 +58,7 @@ class PodcastProvider with ChangeNotifier {
 
   List<RssItemModel> items = [];
 
-  // todo remove me
-  /// Getters and setters are defined below.
-
-  // RssFeed? get feed => _feed;
-
-  // set feed(RssFeed? value) => _feed = value!;
+  late String? currentPodcastTimeRemaining;
 
   Future<void> initial(
     BuildContext context,
@@ -101,7 +91,6 @@ class PodcastProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // todo testing purposes
   Future<void> removeAllDownloadedPodcasts() async {
     Directory downloadsDirectory =
         Directory('/data/user/0/com.liquidhive.openair/app_flutter/downloads');
@@ -155,10 +144,7 @@ class PodcastProvider with ChangeNotifier {
   ) async {
     loadState = 'Load';
 
-    // ignore: prefer_conditional_assignment
-    if (selectedItem == null) {
-      selectedItem = rssItem;
-    }
+    selectedItem ??= rssItem;
 
     if (rssItem != selectedItem) {
       selectedItem!.setPlayingStatus = PlayingStatus.detail;
@@ -244,7 +230,7 @@ class PodcastProvider with ChangeNotifier {
     player.onPlayerStateChanged.listen((PlayerState playerState) {
       debugPrint('Player state: ${playerState.toString()}');
 
-      // TODO Add marking podcast as completed automatically here
+      // TODO: Add marking podcast as completed automatically here
       if (playerState == PlayerState.completed) {
         audioState = 'Stop';
       }
@@ -267,21 +253,7 @@ class PodcastProvider with ChangeNotifier {
     return "${rssItem.itunes!.duration!.inHours != 0 ? '${rssItem.itunes!.duration!.inHours} hr ' : ''}${rssItem.itunes!.duration!.inMinutes != 0 ? '${rssItem.itunes!.duration!.inMinutes} min' : ''}";
   }
 
-  String? displayPodcastAudioInfo(RssItemModel rssItem) {
-    String? result;
-
-    if (rssItem == selectedItem) {
-      if (audioState == 'Pause') {
-        result = '$currentPlaybackRemainingTime left';
-      }
-    } else {
-      result = getPodcastDuration(rssItem);
-    }
-
-    return result!;
-  }
-
-  // todo this is the method that needs to be called when the pause button is pressed.
+  // TODO: This is the method that needs to be called when the pause button is pressed.
   String formatCurrentPlaybackRemainingTime(
     Duration timelinePosition,
     Duration timelineDuration,
@@ -296,13 +268,16 @@ class PodcastProvider with ChangeNotifier {
     int remainingSecondsAdjusted =
         Duration(seconds: remainingSeconds).inSeconds % 60;
 
+    currentPodcastTimeRemaining =
+        "${remainingHours != 0 ? '$remainingHours hr ' : ''}${remainingMinutes != 0 ? '$remainingMinutes min' : ''} left";
+
     String result =
         "${remainingHours != 0 ? remainingHours < 10 ? '0$remainingHours:' : '$remainingHours:' : '00:'}${remainingMinutes != 0 ? remainingMinutes < 10 ? '0$remainingMinutes:' : '$remainingMinutes:' : '00:'}${remainingSecondsAdjusted != 0 ? remainingSecondsAdjusted < 10 ? '0$remainingSecondsAdjusted' : '$remainingSecondsAdjusted' : '00'}";
 
     return result;
   }
 
-  // FIXME add playlist here
+  // TODO: Add playlist here
 
   Future<DownloadStatus> getDownloadStatus(String filename) async {
     if (await isMp3FileDownloaded(filename)) {
@@ -342,8 +317,7 @@ class PodcastProvider with ChangeNotifier {
     return filename;
   }
 
-  // todo add playlist here
-
+  // TODO: Add playlist here
   void playerDownloadButtonClicked(RssItemModel item) async {
     item.setDownloaded = DownloadStatus.downloading;
     downloadingPodcasts.add(item.getGuid);
@@ -370,7 +344,7 @@ class PodcastProvider with ChangeNotifier {
     }
   }
 
-  // todo when the podcast is pause, display the remaining time of the selected podcast
+  // TODO: When the podcast is pause, display the remaining time of the selected podcast
   // Show the remaining time of the podcast when 30 seconds has passed
 
   Future<void> playerPauseButtonClicked() async {
@@ -381,7 +355,7 @@ class PodcastProvider with ChangeNotifier {
       await player.pause();
     }
 
-    selectedItem!.setPlayingStatus = PlayingStatus.detail;
+    selectedItem!.setPlayingStatus = PlayingStatus.paused;
 
     notifyListeners();
   }

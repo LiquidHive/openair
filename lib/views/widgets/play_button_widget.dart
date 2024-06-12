@@ -30,8 +30,22 @@ class PlayButtonWidget extends ConsumerWidget {
             child: Icon(Icons.play_arrow_rounded),
           ),
           Text(
-            // '${ref.read(podcastProvider.notifier).getPodcastDuration(rssItem)} left',
-            ref.watch(podcastProvider).displayPodcastAudioInfo(rssItem)!,
+            ref.watch(podcastProvider).getPodcastDuration(rssItem),
+          ),
+        ],
+      );
+    } else if (playStatus case PlayingStatus.paused) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: paddingSpace,
+            ),
+            child: Icon(Icons.timelapse_rounded),
+          ),
+          Text(
+            ref.watch(podcastProvider).currentPodcastTimeRemaining!,
           ),
         ],
       );

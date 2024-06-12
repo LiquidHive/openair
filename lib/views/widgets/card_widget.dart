@@ -147,7 +147,7 @@ class CardWidget extends ConsumerWidget {
                               DownloadStatus.downloaded) {
                             // TODO: Add remove download method here
                           } else {
-                            // todo add cancel download
+                            // TODO: Add cancel download
                           }
                         },
                         icon: ref
