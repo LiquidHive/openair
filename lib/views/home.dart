@@ -19,7 +19,9 @@ class Home extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (once == false) {
-      ref.read(podcastProvider).initial(context);
+      ref.read(podcastProvider).initial(
+            context,
+          );
       once = true;
     }
 
@@ -32,8 +34,10 @@ class Home extends ConsumerWidget {
         skipLoadingOnReload: true,
         skipLoadingOnRefresh: false,
         data: (List<RssItemModel> data) {
+          ref.read(podcastProvider.notifier).data = data;
+
           final pages = List<Widget>.unmodifiable([
-            EpisodesPage(data: data),
+            const EpisodesPage(),
             const ExplorePage(),
             const LibraryPage(),
           ]);

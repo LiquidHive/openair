@@ -60,6 +60,8 @@ class PodcastProvider with ChangeNotifier {
 
   late String? currentPodcastTimeRemaining;
 
+  late List<RssItemModel> data;
+
   Future<void> initial(
     BuildContext context,
   ) async {
@@ -88,23 +90,6 @@ class PodcastProvider with ChangeNotifier {
 
   void setNavIndex(int navIndex) {
     this.navIndex = navIndex;
-    notifyListeners();
-  }
-
-  Future<void> removeAllDownloadedPodcasts() async {
-    Directory downloadsDirectory =
-        Directory('/data/user/0/com.liquidhive.openair/app_flutter/downloads');
-    List<FileSystemEntity> files = downloadsDirectory.listSync();
-
-    for (FileSystemEntity file in files) {
-      if (file is File) {
-        file.deleteSync();
-      }
-    }
-
-    debugPrint('Removed all downloaded podcasts');
-    downloadingPodcasts.clear();
-
     notifyListeners();
   }
 
@@ -318,6 +303,32 @@ class PodcastProvider with ChangeNotifier {
   }
 
   // TODO: Add playlist here
+
+  Future<void> removeAllDownloadedPodcasts() async {
+    Directory downloadsDirectory =
+        Directory('/data/user/0/com.liquidhive.openair/app_flutter/downloads');
+    List<FileSystemEntity> files = downloadsDirectory.listSync();
+
+    for (FileSystemEntity file in files) {
+      file.deleteSync();
+    }
+
+    for (RssItemModel item in data) {
+      if (item.downloaded == DownloadStatus.downloaded) {
+        item.setDownloaded = DownloadStatus.notDownloaded;
+      }
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Removed all downloaded podcasts'),
+      ),
+    );
+
+    notifyListeners();
+  }
+
+  // TODO: Needs to be multithreaded
   void playerDownloadButtonClicked(RssItemModel item) async {
     item.setDownloaded = DownloadStatus.downloading;
     downloadingPodcasts.add(item.getGuid);
@@ -342,6 +353,26 @@ class PodcastProvider with ChangeNotifier {
       throw Exception(
           'Failed to download podcast (Status Code: ${response.statusCode})');
     }
+  }
+
+  void playerRemoveDownloadButtonClicked(RssItemModel item) async {
+    Directory downloadsDirectory =
+        Directory('/data/user/0/com.liquidhive.openair/app_flutter/downloads');
+    List<FileSystemEntity> files = downloadsDirectory.listSync();
+
+    String filename = formateDownloadedPodcastName(item.enclosure!.url!);
+
+    for (FileSystemEntity file in files) {
+      if (path.basename(file.path) == filename) {
+        file.deleteSync();
+        break;
+      }
+    }
+
+    item.downloaded = DownloadStatus.notDownloaded;
+
+    Navigator.pop(context);
+    notifyListeners();
   }
 
   // TODO: When the podcast is pause, display the remaining time of the selected podcast

@@ -145,7 +145,30 @@ class CardWidget extends ConsumerWidget {
                             );
                           } else if (rssItem.getDownloaded ==
                               DownloadStatus.downloaded) {
-                            // TODO: Add remove download method here
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => SizedBox(
+                                width: double.infinity,
+                                height: 50.0,
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    ref
+                                        .read(podcastProvider.notifier)
+                                        .playerRemoveDownloadButtonClicked(
+                                            rssItem);
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Removed \'${rssItem.title}\''),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.delete),
+                                  label: const Text('Remove download'),
+                                ),
+                              ),
+                            );
                           } else {
                             // TODO: Add cancel download
                           }
