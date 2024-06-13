@@ -27,22 +27,22 @@ class PodcastDetail extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.0),
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                ref.watch(podcastProvider).feed.image!.url!,
-                              ),
-                              fit: BoxFit.cover,
-                            ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        image: DecorationImage(
+                          image: NetworkImage(
+                            ref.watch(podcastProvider).feed.image!.url!,
                           ),
-                          width: 92.0,
-                          height: 92.0,
+                          fit: BoxFit.cover,
                         ),
                       ),
+                      width: 92.0,
+                      height: 92.0,
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Column(
