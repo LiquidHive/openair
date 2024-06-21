@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:openair/models/rss_item_model.dart';
+import 'package:openair/models/episode_model.dart';
 import 'package:openair/providers/podcast_provider.dart';
 
 class PlayButtonWidget extends ConsumerWidget {
@@ -9,7 +9,7 @@ class PlayButtonWidget extends ConsumerWidget {
     required this.rssItem,
   });
 
-  final RssItemModel rssItem;
+  final EpisodeModel rssItem;
 
   // Three states: Detail, buffering, and playing
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:openair/models/rss_item_model.dart';
-import 'package:openair/providers/podcast_future_provider.dart';
+import 'package:openair/models/feed_model.dart';
+import 'package:openair/providers/parses/feed_future_provider.dart';
 import 'package:openair/providers/podcast_provider.dart';
 import 'package:openair/views/navPages/episodes_page.dart';
 import 'package:openair/views/navPages/explore_page.dart';
@@ -12,6 +12,8 @@ import 'package:openair/views/navigation/main_nav_bar.dart';
 import 'player/banner_audio_player.dart';
 
 bool once = false;
+
+// TODO: Create a details page to show all the episode from the selected podcast
 
 class Home extends ConsumerWidget {
   const Home({super.key});
@@ -25,7 +27,7 @@ class Home extends ConsumerWidget {
       once = true;
     }
 
-    final podcastRef = ref.watch(podcastFutureProvider);
+    final podcastRef = ref.watch(feedFutureProvider);
 
     return Scaffold(
       appBar: appBar(ref),
@@ -33,9 +35,7 @@ class Home extends ConsumerWidget {
       body: podcastRef.when(
         skipLoadingOnReload: true,
         skipLoadingOnRefresh: false,
-        data: (List<RssItemModel> data) {
-          ref.read(podcastProvider.notifier).data = data;
-
+        data: (List<FeedModel> data) {
           final pages = List<Widget>.unmodifiable([
             const EpisodesPage(),
             const ExplorePage(),

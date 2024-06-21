@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:openair/providers/podcast_provider.dart';
-import 'package:openair/views/player/podcast_detail.dart';
 
 class MainPlayer extends ConsumerWidget {
   const MainPlayer({super.key});
@@ -19,14 +18,15 @@ class MainPlayer extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // FIXME: Here should be the podcast image
                 GestureDetector(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => PodcastDetail(
-                        rssItem: ref.watch(podcastProvider).selectedItem!,
-                      ),
-                    ),
-                  ),
+                  // onTap: () => Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => PodcastDetail(
+                  //       rssItem: ref.watch(podcastProvider).selectedItem!,
+                  //     ),
+                  //   ),
+                  // ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 15.0),
                     child: Container(
@@ -34,9 +34,10 @@ class MainPlayer extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(35.0),
                         image: DecorationImage(
                           image: NetworkImage(
-                            ref.watch(podcastProvider).feed.image!.url!,
+                            // TODO: Needs to be refactored
+                            ref.watch(podcastProvider).feed["image"],
                           ),
-                          fit: BoxFit.cover, // Adjust fit as needed
+                          fit: BoxFit.cover,
                         ),
                       ),
                       width: imageSize,
@@ -45,7 +46,7 @@ class MainPlayer extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  ref.watch(podcastProvider).selectedItem!.title!,
+                  ref.watch(podcastProvider).selectedItem!.rssItem!.title!,
                   style: const TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
@@ -53,7 +54,12 @@ class MainPlayer extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8.0),
                 Text(
-                  ref.watch(podcastProvider).selectedItem!.subTitle!,
+                  ref
+                      .watch(podcastProvider)
+                      .selectedItem!
+                      .rssItem!
+                      .itunes!
+                      .subtitle!,
                 ),
               ],
             ),

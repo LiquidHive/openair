@@ -18,21 +18,22 @@ class BannerAudioPlayer extends ConsumerWidget {
               onTap: () {
                 ref.read(podcastProvider.notifier).bannerControllerClicked();
               },
-              leading: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  image: DecorationImage(
-                    image: NetworkImage(
-                      ref.watch(podcastProvider).feed.image!.url!,
-                    ),
-                    fit: BoxFit.cover, // Adjust fit as needed
-                  ),
-                ),
-                width: 62.0,
-                height: 62.0,
-              ),
+              // FIXME: Aqui debe ser la imagen
+              // leading: Container(
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(10.0),
+              //     image: DecorationImage(
+              //       image: NetworkImage(
+              //         ref.watch(podcastProvider).feed.image!.url!,
+              //       ),
+              //       fit: BoxFit.cover, // Adjust fit as needed
+              //     ),
+              //   ),
+              //   width: 62.0,
+              //   height: 62.0,
+              // ),
               title: Text(
-                ref.watch(podcastProvider).selectedItem!.title!,
+                ref.watch(podcastProvider).selectedItem!.rssItem!.title!,
                 style: const TextStyle(
                   fontSize: 14.0,
                   fontWeight: FontWeight.bold,

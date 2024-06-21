@@ -5,11 +5,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:openair/models/rss_item_model.dart';
+import 'package:openair/models/feed_model.dart';
+import 'package:openair/models/episode_model.dart';
 import 'package:openair/views/player/main_player.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:webfeed/domain/rss_feed.dart';
 
 final podcastProvider = ChangeNotifierProvider<PodcastProvider>(
   (ref) {
@@ -22,16 +22,10 @@ enum DownloadStatus { downloaded, downloading, notDownloaded }
 enum PlayingStatus { detail, buffering, playing, paused }
 
 class PodcastProvider with ChangeNotifier {
-  List<String> downloadingPodcasts = [];
-
-  late RssFeed feed;
-
   late AudioPlayer player;
   late StreamSubscription? mPlayerSubscription;
 
   late BuildContext context;
-
-  late String podcastName;
 
   late String podcastTitle;
   late String podcastSubtitle;
@@ -46,21 +40,26 @@ class PodcastProvider with ChangeNotifier {
   late String currentPlaybackPosition;
   late String currentPlaybackRemainingTime;
 
-  late RssItemModel? selectedItem;
-
   final String storagePath = 'openair/downloads';
 
   late Directory directory;
 
-  int navIndex = 0;
+  int navIndex = 1;
 
   bool isPodcastSelected = false;
 
-  List<RssItemModel> items = [];
+// Main api feed from PodcastIndex.org
+  late Map<String, dynamic> feed;
+
+  late FeedModel? selectedPodcast;
+  late EpisodeModel? selectedItem;
+
+  List<FeedModel> feedItems = [];
+  List<EpisodeModel> episodeItems = [];
+
+  List<String> downloadingPodcasts = [];
 
   late String? currentPodcastTimeRemaining;
-
-  late List<RssItemModel> data;
 
   Future<void> initial(
     BuildContext context,
@@ -125,7 +124,7 @@ class PodcastProvider with ChangeNotifier {
   void audioPlayerSheetCloseButtonClicked() {}
 
   Future<List<String>> setPodcastStream(
-    RssItemModel rssItem,
+    EpisodeModel rssItem,
   ) async {
     loadState = 'Load';
 
@@ -138,7 +137,11 @@ class PodcastProvider with ChangeNotifier {
     rssItem.setPlayingStatus = PlayingStatus.buffering;
     notifyListeners();
 
-    String mp3Name = formateDownloadedPodcastName(rssItem.enclosure!.url!);
+    // TODO: Add support for multiple podcast
+    String mp3Name =
+        // formateDownloadedPodcastName(rssItem.episodeFeed!.enclosure!.url!);
+        '';
+
     bool isDownloaded = await isMp3FileDownloaded(mp3Name);
 
     List<String> result = [mp3Name, isDownloaded.toString()];
@@ -146,13 +149,13 @@ class PodcastProvider with ChangeNotifier {
     isDownloaded
         ? {
             await player.setSource(DeviceFileSource(
-              rssItem.enclosure!.url!,
-              mimeType: rssItem.enclosure!.type,
+              rssItem.rssItem!.enclosure!.url!,
+              mimeType: rssItem.rssItem!.enclosure!.type,
             ))
           }
         : await player.setSource(UrlSource(
-            rssItem.enclosure!.url!,
-            mimeType: rssItem.enclosure!.type,
+            rssItem.rssItem!.enclosure!.url!,
+            mimeType: rssItem.rssItem!.enclosure!.type,
           ));
 
     return result;
@@ -171,7 +174,7 @@ class PodcastProvider with ChangeNotifier {
   }
 
   void playerPlayButtonClicked(
-    RssItemModel rssItem,
+    EpisodeModel rssItem,
   ) async {
     List<String> result = await setPodcastStream(rssItem);
 
@@ -186,7 +189,7 @@ class PodcastProvider with ChangeNotifier {
         player.play(DeviceFileSource(
             '/data/user/0/com.liquidhive.openair/app_flutter/downloads/${result[0]}')); // MP3 Name
       } else {
-        player.play(UrlSource(rssItem.enclosure!.url!));
+        player.play(UrlSource(rssItem.rssItem!.enclosure!.url!));
       }
     }
 
@@ -268,8 +271,8 @@ class PodcastProvider with ChangeNotifier {
     return result;
   }
 
-  String getPodcastDuration(RssItemModel rssItem) {
-    return "${rssItem.itunes!.duration!.inHours != 0 ? '${rssItem.itunes!.duration!.inHours} hr ' : ''}${rssItem.itunes!.duration!.inMinutes != 0 ? '${rssItem.itunes!.duration!.inMinutes} min' : ''}";
+  String getPodcastDuration(EpisodeModel rssItem) {
+    return "${rssItem.rssItem!.itunes!.duration!.inHours != 0 ? '${rssItem.rssItem!.itunes!.duration!.inHours} hr ' : ''}${rssItem.rssItem!.itunes!.duration!.inMinutes != 0 ? '${rssItem.rssItem!.itunes!.duration!.inMinutes} min' : ''}";
   }
 
   // TODO: This is the method that needs to be called when the pause button is pressed.
@@ -347,11 +350,12 @@ class PodcastProvider with ChangeNotifier {
       file.deleteSync();
     }
 
-    for (RssItemModel item in data) {
-      if (item.downloaded == DownloadStatus.downloaded) {
-        item.setDownloaded = DownloadStatus.notDownloaded;
-      }
-    }
+    // FIXME: Here
+    // for (RssItemModel item in data) {
+    //   if (item.downloaded == DownloadStatus.downloaded) {
+    //     item.setDownloaded = DownloadStatus.notDownloaded;
+    //   }
+    // }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -363,23 +367,24 @@ class PodcastProvider with ChangeNotifier {
   }
 
   // TODO: Needs to be multithreaded
-  void playerDownloadButtonClicked(RssItemModel item) async {
+  void playerDownloadButtonClicked(EpisodeModel item) async {
     item.setDownloaded = DownloadStatus.downloading;
-    downloadingPodcasts.add(item.getGuid);
+    downloadingPodcasts.add(item.rssItem!.guid!);
 
     notifyListeners();
 
-    final response = await http.get(Uri.parse(item.enclosure!.url!));
+    final response = await http.get(Uri.parse(item.rssItem!.enclosure!.url!));
 
     if (response.statusCode == 200) {
-      String filename = formateDownloadedPodcastName(item.enclosure!.url!);
+      String filename =
+          formateDownloadedPodcastName(item.rssItem!.enclosure!.url!);
 
       final file = File(await getDownloadsPath(filename));
 
       await file.writeAsBytes(response.bodyBytes).whenComplete(
         () {
           item.setDownloaded = DownloadStatus.downloaded;
-          downloadingPodcasts.remove(item.getGuid);
+          downloadingPodcasts.remove(item..rssItem!.guid);
           notifyListeners();
         },
       );
@@ -389,12 +394,13 @@ class PodcastProvider with ChangeNotifier {
     }
   }
 
-  void playerRemoveDownloadButtonClicked(RssItemModel item) async {
+  void playerRemoveDownloadButtonClicked(EpisodeModel item) async {
     Directory downloadsDirectory =
         Directory('/data/user/0/com.liquidhive.openair/app_flutter/downloads');
     List<FileSystemEntity> files = downloadsDirectory.listSync();
 
-    String filename = formateDownloadedPodcastName(item.enclosure!.url!);
+    String filename =
+        formateDownloadedPodcastName(item.rssItem!.enclosure!.url!);
 
     for (FileSystemEntity file in files) {
       if (path.basename(file.path) == filename) {

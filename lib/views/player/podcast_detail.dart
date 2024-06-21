@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:openair/models/rss_item_model.dart';
+import 'package:openair/models/episode_model.dart';
 import 'package:openair/providers/podcast_provider.dart';
 import 'package:openair/views/widgets/play_button_widget.dart';
 
@@ -10,7 +10,7 @@ class PodcastDetail extends ConsumerWidget {
     this.rssItem,
   });
 
-  final RssItemModel? rssItem;
+  final EpisodeModel? rssItem;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +34,7 @@ class PodcastDetail extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10.0),
                         image: DecorationImage(
                           image: NetworkImage(
-                            ref.watch(podcastProvider).feed.image!.url!,
+                            ref.watch(podcastProvider).selectedPodcast!.artwork,
                           ),
                           fit: BoxFit.cover,
                         ),
@@ -49,15 +49,17 @@ class PodcastDetail extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          ref.watch(podcastProvider).podcastName,
-                          style: const TextStyle(
+                        const Text(
+                          //   FIXME: HERE
+                          '',
+                          // ref.watch(podcastProvider).podcastName,
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 26.0,
                           ),
                         ),
                         Text(
-                          '${ref.watch(podcastProvider).selectedItem!.getPublishedDate!.day}/${ref.watch(podcastProvider).selectedItem!.getPublishedDate!.month}/${ref.watch(podcastProvider).selectedItem!.getPublishedDate!.year}',
+                          '${ref.watch(podcastProvider).selectedItem!.rssItem!.pubDate!.day}/${ref.watch(podcastProvider).selectedItem!.rssItem!.pubDate!.month}/${ref.watch(podcastProvider).selectedItem!.rssItem!.pubDate!.year}',
                         ),
                       ],
                     ),
@@ -65,7 +67,7 @@ class PodcastDetail extends ConsumerWidget {
                 ],
               ),
               Text(
-                ref.watch(podcastProvider).selectedItem!.title!,
+                ref.watch(podcastProvider).selectedItem!.rssItem!.title!,
                 textAlign: TextAlign.start,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -112,8 +114,8 @@ class PodcastDetail extends ConsumerWidget {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content:
-                                  Text('Downloading \'${rssItem!.title}\''),
+                              content: Text(
+                                  'Downloading \'${rssItem!.rssItem!.title}\''),
                             ),
                           );
                         } else if (rssItem!.getDownloaded ==
@@ -132,8 +134,8 @@ class PodcastDetail extends ConsumerWidget {
 
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content:
-                                          Text('Removed \'${rssItem!.title}\''),
+                                      content: Text(
+                                          'Removed \'${rssItem!.rssItem!.title}\''),
                                     ),
                                   );
                                 },
@@ -162,7 +164,11 @@ class PodcastDetail extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      ref.watch(podcastProvider).selectedItem!.description!,
+                      ref
+                          .watch(podcastProvider)
+                          .selectedItem!
+                          .rssItem!
+                          .description!,
                       style: const TextStyle(),
                     ),
                   ],

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:openair/models/rss_item_model.dart';
+import 'package:openair/models/episode_model.dart';
 import 'package:openair/providers/podcast_provider.dart';
-import 'package:openair/views/player/podcast_detail.dart';
 import 'package:openair/views/widgets/play_button_widget.dart';
 
-class CardWidget extends ConsumerWidget {
-  final RssItemModel rssItem;
+class EpisodeCard extends ConsumerWidget {
+  final EpisodeModel episodeItem;
 
-  const CardWidget({
+  const EpisodeCard({
     super.key,
-    required this.rssItem,
+    required this.episodeItem,
   });
 
   @override
@@ -19,15 +18,17 @@ class CardWidget extends ConsumerWidget {
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
         onTap: () {
-          ref.read(podcastProvider).selectedItem = rssItem;
+          ref.read(podcastProvider).selectedItem = episodeItem;
 
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => PodcastDetail(
-                rssItem: rssItem,
-              ),
-            ),
-          );
+          debugPrint('Title: ${episodeItem.rssItem!.title}');
+
+          // Navigator.of(context).push(
+          //   MaterialPageRoute(
+          //     builder: (context) => PodcastDetail(
+          //       rssItem: episodeItem,
+          //     ),
+          //   ),
+          // );
         },
         child: Card(
           child: Container(
@@ -51,9 +52,12 @@ class CardWidget extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(10.0),
                             image: DecorationImage(
                               image: NetworkImage(
-                                ref.watch(podcastProvider).feed.image!.url!,
+                                ref
+                                    .watch(podcastProvider)
+                                    .selectedPodcast!
+                                    .artwork,
                               ),
-                              fit: BoxFit.cover, // Adjust fit as needed
+                              fit: BoxFit.cover,
                             ),
                           ),
                           width: 62.0,
@@ -67,14 +71,14 @@ class CardWidget extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              ref.watch(podcastProvider).podcastName,
+                              ref.watch(podcastProvider).selectedPodcast!.title,
                               softWrap: true,
                               style: const TextStyle(
                                 fontSize: 14.0,
                               ),
                             ),
                             Text(
-                              '${rssItem.publishedDate!.day}/${rssItem.publishedDate!.month}/${rssItem.publishedDate!.year}',
+                              '${episodeItem.rssItem!.pubDate!.day}/${episodeItem.rssItem!.pubDate!.month}/${episodeItem.rssItem!.pubDate!.year}',
                             ),
                           ],
                         ),
@@ -82,7 +86,7 @@ class CardWidget extends ConsumerWidget {
                     ],
                   ),
                   Text(
-                    rssItem.title!,
+                    episodeItem.rssItem!.title!,
                     textAlign: TextAlign.start,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
@@ -91,7 +95,7 @@ class CardWidget extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
-                      rssItem.description!,
+                      episodeItem.rssItem!.description!,
                       maxLines: 4,
                       style: const TextStyle(
                         overflow: TextOverflow.ellipsis,
@@ -116,35 +120,34 @@ class CardWidget extends ConsumerWidget {
                           onPressed: () => ref
                               .read(podcastProvider.notifier)
                               .playerPlayButtonClicked(
-                                rssItem,
+                                episodeItem,
                               ),
                           child: PlayButtonWidget(
-                            rssItem: rssItem,
+                            rssItem: episodeItem,
                           ),
                         ),
                       ),
                       // Playlist button
                       IconButton(
                         onPressed: () {},
-                        // TODO: THIS -> playlist_add_check_rounded
-                        icon: const Icon(Icons.playlist_add),
+                        icon: const Icon(Icons.playlist_add_rounded),
                       ),
                       // Download button
                       IconButton(
                         onPressed: () {
-                          if (rssItem.getDownloaded ==
+                          if (episodeItem.getDownloaded ==
                               DownloadStatus.notDownloaded) {
                             ref
                                 .read(podcastProvider.notifier)
-                                .playerDownloadButtonClicked(rssItem);
+                                .playerDownloadButtonClicked(episodeItem);
 
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content:
-                                    Text('Downloading \'${rssItem.title}\''),
+                                content: Text(
+                                    'Downloading \'${episodeItem.rssItem!.title}\''),
                               ),
                             );
-                          } else if (rssItem.getDownloaded ==
+                          } else if (episodeItem.getDownloaded ==
                               DownloadStatus.downloaded) {
                             showModalBottomSheet(
                               context: context,
@@ -156,12 +159,12 @@ class CardWidget extends ConsumerWidget {
                                     ref
                                         .read(podcastProvider.notifier)
                                         .playerRemoveDownloadButtonClicked(
-                                            rssItem);
+                                            episodeItem);
 
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                            'Removed \'${rssItem.title}\''),
+                                            'Removed \'${episodeItem.rssItem!.title}\''),
                                       ),
                                     );
                                   },
@@ -176,7 +179,7 @@ class CardWidget extends ConsumerWidget {
                         },
                         icon: ref
                             .read(podcastProvider.notifier)
-                            .getDownloadIcon(rssItem.getDownloaded!),
+                            .getDownloadIcon(episodeItem.getDownloaded!),
                       ),
                       IconButton(
                         onPressed: () {},
