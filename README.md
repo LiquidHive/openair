@@ -37,6 +37,8 @@ Prerequisites:
 
 We welcome contributions of all kinds! Please refer to the contribution guidelines document (link above) for details on how to get started.
 
+OpemAir current fetches podcast information from podcastindex. You will need to create an account on PodcastIndex @ [https://api.podcastindex.org/developer_home (PodcatIndex)] and get a apiKey and apiSecret to use OpenAir.
+
 ## License
 
 OpenAir is licensed under the MIT License (see LICENSE file for details).
