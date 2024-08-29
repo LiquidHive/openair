@@ -35,9 +35,9 @@ Prerequisites:
 - Run the app on your device or emulator: flutter run
 - Contributing
 
-We welcome contributions of all kinds! Please refer to the contribution guidelines document (link above) for details on how to get started.
+OpenAir current fetches podcast information from PodcastIndex. You will need to create an account on PodcastIndex at [https://api.podcastindex.org/developer_home] and get a apiKey and apiSecret to use OpenAir.
 
-OpemAir current fetches podcast information from podcastindex. You will need to create an account on PodcastIndex @ [https://api.podcastindex.org/developer_home (PodcatIndex)] and get a apiKey and apiSecret to use OpenAir.
+We welcome contributions of all kinds! Please refer to the contribution guidelines document (link above) for details on how to get started.
 
 ## License
 
