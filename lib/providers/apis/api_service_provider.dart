@@ -4,6 +4,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:openair/api_keys.dart';
 
 final apiServiceProvider = Provider(
   (ref) => ApiServiceProvider(),
@@ -13,10 +14,9 @@ class ApiServiceProvider {
   Future<Map<String, dynamic>> getPodcasts() async {
     var unixTime = (DateTime.now().millisecondsSinceEpoch / 1000).round();
     String newUnixTime = unixTime.toString();
-    var apiKey = "JCUDUKKZ3GSRHFQXKHX6";
-    var apiSecret = "nWUkhnUqYpmZyQR979hDCThUaXZ8GHKahT2FVS9D";
-    var firstChunk = utf8.encode(apiKey);
-    var secondChunk = utf8.encode(apiSecret);
+
+    var firstChunk = utf8.encode(ApiKeys.apiKey);
+    var secondChunk = utf8.encode(ApiKeys.apiSecret);
     var thirdChunk = utf8.encode(newUnixTime);
 
     var output = AccumulatorSink<Digest>();

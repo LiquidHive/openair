@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:http/http.dart' as http;
+
 import 'package:openair/models/feed_model.dart';
 import 'package:openair/models/episode_model.dart';
 import 'package:openair/views/player/main_player.dart';
@@ -37,8 +39,8 @@ class PodcastProvider with ChangeNotifier {
   late Duration podcastDuration;
 
   late double podcastCurrentPositionInMilliseconds;
-  late String currentPlaybackPosition;
-  late String currentPlaybackRemainingTime;
+  late String currentPlaybackPositionString;
+  late String currentPlaybackRemainingTimeString;
 
   final String storagePath = 'openair/downloads';
 
@@ -52,9 +54,9 @@ class PodcastProvider with ChangeNotifier {
   late Map<String, dynamic> feed;
 
   late FeedModel? selectedPodcast;
-  late EpisodeModel? selectedItem;
+  late EpisodeModel? selectedEpisode;
 
-  List<FeedModel> feedItems = [];
+  List<FeedModel> feedPodcasts = [];
   List<EpisodeModel> episodeItems = [];
 
   List<String> downloadingPodcasts = [];
@@ -76,10 +78,10 @@ class PodcastProvider with ChangeNotifier {
     podcastDuration = Duration.zero;
 
     podcastCurrentPositionInMilliseconds = 0;
-    currentPlaybackPosition = '00:00:00';
-    currentPlaybackRemainingTime = '00:00:00';
+    currentPlaybackPositionString = '00:00:00';
+    currentPlaybackRemainingTimeString = '00:00:00';
 
-    selectedItem = null;
+    selectedEpisode = null;
 
     audioState = 'Pause';
     loadState = 'Detail'; // Play, Load, Detail
@@ -124,23 +126,23 @@ class PodcastProvider with ChangeNotifier {
   void audioPlayerSheetCloseButtonClicked() {}
 
   Future<List<String>> setPodcastStream(
-    EpisodeModel rssItem,
+    EpisodeModel episodeItem,
   ) async {
     loadState = 'Load';
 
-    selectedItem ??= rssItem;
+    selectedEpisode ??= episodeItem;
 
-    if (rssItem != selectedItem) {
-      selectedItem!.setPlayingStatus = PlayingStatus.detail;
+    if (episodeItem != selectedEpisode) {
+      selectedEpisode!.setPlayingStatus = PlayingStatus.detail;
     }
 
-    rssItem.setPlayingStatus = PlayingStatus.buffering;
+    episodeItem.setPlayingStatus = PlayingStatus.buffering;
     notifyListeners();
 
     // TODO: Add support for multiple podcast
     String mp3Name =
-        // formateDownloadedPodcastName(rssItem.episodeFeed!.enclosure!.url!);
-        '';
+        formattedDownloadedPodcastName(episodeItem.getRssItem!.enclosure!.url!);
+    // '';
 
     bool isDownloaded = await isMp3FileDownloaded(mp3Name);
 
@@ -149,34 +151,28 @@ class PodcastProvider with ChangeNotifier {
     isDownloaded
         ? {
             await player.setSource(DeviceFileSource(
-              rssItem.rssItem!.enclosure!.url!,
-              mimeType: rssItem.rssItem!.enclosure!.type,
+              episodeItem.rssItem!.enclosure!.url!,
+              mimeType: episodeItem.rssItem!.enclosure!.type,
             ))
           }
         : await player.setSource(UrlSource(
-            rssItem.rssItem!.enclosure!.url!,
-            mimeType: rssItem.rssItem!.enclosure!.type,
+            episodeItem.rssItem!.enclosure!.url!,
+            mimeType: episodeItem.rssItem!.enclosure!.type,
           ));
 
     return result;
   }
 
-  void setShowSelectedPodcast() {
-    isPodcastSelected = true;
-    notifyListeners();
-  }
-
   void rewindButtonClicked() {
-    // TODO: Rewind 10 seconds
     if (podcastPosition.inSeconds - 10 > 0) {
       player.seek(Duration(seconds: podcastPosition.inSeconds - 10));
     }
   }
 
   void playerPlayButtonClicked(
-    EpisodeModel rssItem,
+    EpisodeModel episodeItem,
   ) async {
-    List<String> result = await setPodcastStream(rssItem);
+    List<String> result = await setPodcastStream(episodeItem);
 
     isPodcastSelected = true;
 
@@ -189,17 +185,17 @@ class PodcastProvider with ChangeNotifier {
         player.play(DeviceFileSource(
             '/data/user/0/com.liquidhive.openair/app_flutter/downloads/${result[0]}')); // MP3 Name
       } else {
-        player.play(UrlSource(rssItem.rssItem!.enclosure!.url!));
+        player.play(UrlSource(episodeItem.rssItem!.enclosure!.url!));
       }
     }
 
-    rssItem.setPlayingStatus = PlayingStatus.playing;
+    episodeItem.setPlayingStatus = PlayingStatus.playing;
 
     audioState = 'Play';
     loadState = 'Play';
     updatePlaybackBar();
 
-    selectedItem = rssItem;
+    selectedEpisode = episodeItem;
     notifyListeners();
   }
 
@@ -211,7 +207,7 @@ class PodcastProvider with ChangeNotifier {
       await player.pause();
     }
 
-    selectedItem!.setPlayingStatus = PlayingStatus.paused;
+    selectedEpisode!.setPlayingStatus = PlayingStatus.paused;
 
     notifyListeners();
   }
@@ -225,38 +221,42 @@ class PodcastProvider with ChangeNotifier {
   }
 
   void updatePlaybackBar() {
-    player.getDuration().then((Duration? value) {
-      podcastDuration = value!;
-    });
+    // player.getDuration().then((Duration? value) {
+    //   podcastDuration = value;
+    //   notifyListeners();
+    // });
+
+    podcastDuration = selectedEpisode!.getRssItem!.itunes!.duration!;
+    notifyListeners();
 
     player.onPositionChanged.listen((Duration p) {
       podcastPosition = p;
 
-      currentPlaybackPosition = formatCurrentPlaybackPosition(podcastPosition);
+      currentPlaybackPositionString =
+          formatCurrentPlaybackPosition(podcastPosition);
 
-      currentPlaybackRemainingTime =
+      currentPlaybackRemainingTimeString =
           formatCurrentPlaybackRemainingTime(podcastPosition, podcastDuration);
 
       podcastCurrentPositionInMilliseconds =
           podcastPosition.inMilliseconds / podcastDuration.inMilliseconds;
 
-      // debugPrint(
-      //     ' podcastPosition.inMilliseconds: ${podcastPosition.inMilliseconds.toString()}');
-
-      // debugPrint(
-      //     'podcastCurrentPositionInMilliseconds: ${podcastCurrentPositionInMilliseconds.toString()}');
+      // debugPrint('Podcast Position: ${podcastPosition.inMilliseconds}');
+      // debugPrint('Podcast Duration: ${podcastDuration.inMilliseconds}');
+      // debugPrint('Current Position: $podcastCurrentPositionInMilliseconds');
 
       notifyListeners();
     });
 
     player.onPlayerStateChanged.listen((PlayerState playerState) {
-      debugPrint('Player state: ${playerState.toString()}');
-
       // TODO: Add marking podcast as completed automatically here
       if (playerState == PlayerState.completed) {
+        debugPrint('Completed');
         audioState = 'Stop';
       }
     });
+
+    notifyListeners();
   }
 
   String formatCurrentPlaybackPosition(Duration timeline) {
@@ -327,7 +327,7 @@ class PodcastProvider with ChangeNotifier {
     return absolutePath;
   }
 
-  String formateDownloadedPodcastName(String audioUrl) {
+  String formattedDownloadedPodcastName(String audioUrl) {
     String filename = path.basename(audioUrl); // Extract filename from URL
 
     int indexOfQuestionMark = filename.indexOf('?');
@@ -350,7 +350,7 @@ class PodcastProvider with ChangeNotifier {
       file.deleteSync();
     }
 
-    // FIXME: Here
+    // FIXME: Fix this
     // for (RssItemModel item in data) {
     //   if (item.downloaded == DownloadStatus.downloaded) {
     //     item.setDownloaded = DownloadStatus.notDownloaded;
@@ -377,7 +377,7 @@ class PodcastProvider with ChangeNotifier {
 
     if (response.statusCode == 200) {
       String filename =
-          formateDownloadedPodcastName(item.rssItem!.enclosure!.url!);
+          formattedDownloadedPodcastName(item.rssItem!.enclosure!.url!);
 
       final file = File(await getDownloadsPath(filename));
 
@@ -400,7 +400,7 @@ class PodcastProvider with ChangeNotifier {
     List<FileSystemEntity> files = downloadsDirectory.listSync();
 
     String filename =
-        formateDownloadedPodcastName(item.rssItem!.enclosure!.url!);
+        formattedDownloadedPodcastName(item.rssItem!.enclosure!.url!);
 
     for (FileSystemEntity file in files) {
       if (path.basename(file.path) == filename) {

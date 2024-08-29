@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:openair/models/episode_model.dart';
 import 'package:openair/providers/podcast_provider.dart';
+import 'package:openair/views/player/banner_audio_player.dart';
 import 'package:openair/views/widgets/play_button_widget.dart';
 
-class PodcastDetail extends ConsumerWidget {
-  const PodcastDetail({
+class EpisodeDetail extends ConsumerWidget {
+  const EpisodeDetail({
     super.key,
-    this.rssItem,
+    this.episodeItem,
   });
 
-  final EpisodeModel? rssItem;
+  final EpisodeModel? episodeItem;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,17 +50,16 @@ class PodcastDetail extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          //   FIXME: HERE
-                          '',
-                          // ref.watch(podcastProvider).podcastName,
-                          style: TextStyle(
+                        Text(
+                          ref.watch(podcastProvider).selectedPodcast!.title,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 26.0,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '${ref.watch(podcastProvider).selectedItem!.rssItem!.pubDate!.day}/${ref.watch(podcastProvider).selectedItem!.rssItem!.pubDate!.month}/${ref.watch(podcastProvider).selectedItem!.rssItem!.pubDate!.year}',
+                          '${ref.watch(podcastProvider).selectedEpisode!.rssItem!.pubDate!.day}/${ref.watch(podcastProvider).selectedEpisode!.rssItem!.pubDate!.month}/${ref.watch(podcastProvider).selectedEpisode!.rssItem!.pubDate!.year}',
                         ),
                       ],
                     ),
@@ -67,7 +67,7 @@ class PodcastDetail extends ConsumerWidget {
                 ],
               ),
               Text(
-                ref.watch(podcastProvider).selectedItem!.rssItem!.title!,
+                ref.watch(podcastProvider).selectedEpisode!.rssItem!.title!,
                 textAlign: TextAlign.start,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -90,13 +90,12 @@ class PodcastDetail extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        onPressed: () => ref
-                            .read(podcastProvider.notifier)
-                            .playerPlayButtonClicked(
-                              rssItem!,
-                            ),
+                        onPressed: () =>
+                            ref.read(podcastProvider).playerPlayButtonClicked(
+                                  episodeItem!,
+                                ),
                         child: PlayButtonWidget(
-                          rssItem: rssItem!,
+                          episodeItem: episodeItem!,
                         ),
                       ),
                     ),
@@ -106,19 +105,19 @@ class PodcastDetail extends ConsumerWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        if (rssItem!.getDownloaded ==
+                        if (episodeItem!.getDownloaded ==
                             DownloadStatus.notDownloaded) {
                           ref
-                              .read(podcastProvider.notifier)
-                              .playerDownloadButtonClicked(rssItem!);
+                              .read(podcastProvider)
+                              .playerDownloadButtonClicked(episodeItem!);
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  'Downloading \'${rssItem!.rssItem!.title}\''),
+                                  'Downloading \'${episodeItem!.rssItem!.title}\''),
                             ),
                           );
-                        } else if (rssItem!.getDownloaded ==
+                        } else if (episodeItem!.getDownloaded ==
                             DownloadStatus.downloaded) {
                           showModalBottomSheet(
                             context: context,
@@ -128,14 +127,14 @@ class PodcastDetail extends ConsumerWidget {
                               child: ElevatedButton.icon(
                                 onPressed: () {
                                   ref
-                                      .read(podcastProvider.notifier)
+                                      .read(podcastProvider)
                                       .playerRemoveDownloadButtonClicked(
-                                          rssItem!);
+                                          episodeItem!);
 
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          'Removed \'${rssItem!.rssItem!.title}\''),
+                                          'Removed \'${episodeItem!.rssItem!.title}\''),
                                     ),
                                   );
                                 },
@@ -149,8 +148,8 @@ class PodcastDetail extends ConsumerWidget {
                         }
                       },
                       icon: ref
-                          .read(podcastProvider.notifier)
-                          .getDownloadIcon(rssItem!.getDownloaded!),
+                          .read(podcastProvider)
+                          .getDownloadIcon(episodeItem!.getDownloaded!),
                     ),
                     IconButton(
                       onPressed: () {},
@@ -161,22 +160,23 @@ class PodcastDetail extends ConsumerWidget {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Column(
-                  children: [
-                    Text(
-                      ref
-                          .watch(podcastProvider)
-                          .selectedItem!
-                          .rssItem!
-                          .description!,
-                      style: const TextStyle(),
-                    ),
-                  ],
+                child: Text(
+                  ref
+                      .watch(podcastProvider)
+                      .selectedEpisode!
+                      .rssItem!
+                      .description!,
                 ),
               ),
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: SizedBox(
+        height: ref.watch(podcastProvider).isPodcastSelected ? 75.0 : 0.0,
+        child: ref.watch(podcastProvider).isPodcastSelected
+            ? const BannerAudioPlayer()
+            : const SizedBox(),
       ),
     );
   }

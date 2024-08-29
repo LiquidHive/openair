@@ -11,5 +11,6 @@
     "timelapse",
     "Trajan",
     "webfeed"
-  ]
+  ],
+  "cmake.ignoreCMakeListsMissing": true
 }

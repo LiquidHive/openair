@@ -11,11 +11,17 @@ final feedFutureProvider = FutureProvider(
 
     ref.watch(podcastProvider).feed = feed;
 
-    for (Map<String, dynamic> podcast in feed['feeds']) {
-      final FeedModel feedModel = FeedModel.fromJson(podcast);
-      ref.watch(podcastProvider).feedItems.add(feedModel);
+    // TODO Make a variable in podcastProvider that allows a or statement to clear and refresh the list
+    if (ref.read(podcastProvider).feedPodcasts.isEmpty) {
+      for (Map<String, dynamic> podcast in feed['feeds']) {
+        final FeedModel feedModel = FeedModel.fromJson(podcast);
+
+        if (!ref.watch(podcastProvider).feedPodcasts.contains(feedModel)) {
+          ref.watch(podcastProvider).feedPodcasts.add(feedModel);
+        }
+      }
     }
 
-    return ref.watch(podcastProvider).feedItems;
+    return ref.watch(podcastProvider).feedPodcasts;
   },
 );

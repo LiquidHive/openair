@@ -16,6 +16,7 @@ AppBar appBar(WidgetRef ref) {
       Padding(
         padding: const EdgeInsets.all(8.0),
         child: IconButton(
+          tooltip: 'Remove all downloaded podcasts',
           onPressed: () {
             ref.read(podcastProvider).removeAllDownloadedPodcasts();
           },
@@ -25,8 +26,8 @@ AppBar appBar(WidgetRef ref) {
       Padding(
         padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
         child: IconButton(
+          tooltip: 'Pause player',
           onPressed: () {
-            // TODO: Running test here to bring up the banner player
             ref.read(podcastProvider.notifier).playerPauseButtonClicked();
           },
           icon: const Icon(Icons.person),

@@ -12,15 +12,15 @@ class EpisodeModel {
     this.playingStatus = PlayingStatus.detail,
   });
 
-  get getRssItem => rssItem;
+  RssItem? get getRssItem => rssItem;
 
   set setRssItem(rssItem) => this.rssItem = rssItem;
 
-  get getDownloaded => downloaded;
+  DownloadStatus? get getDownloaded => downloaded;
 
   set setDownloaded(downloaded) => this.downloaded = downloaded;
 
-  get getPlayingStatus => playingStatus;
+  PlayingStatus? get getPlayingStatus => playingStatus;
 
   set setPlayingStatus(playingStatus) => this.playingStatus = playingStatus;
 }

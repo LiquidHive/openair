@@ -13,17 +13,9 @@ class ExplorePage extends ConsumerWidget {
       padding: const EdgeInsets.all(8.0),
       child: RefreshIndicator(
         onRefresh: () => ref.refresh(feedFutureProvider.future),
-        child: GridView.count(
-          // TODO: Change the grid view count based on the screen size
-          crossAxisCount: 2,
-          mainAxisSpacing: 8.0,
-          crossAxisSpacing: 8.0,
-          childAspectRatio: 7.4,
-          children: List.generate(
-            ref.watch(podcastProvider).feedItems.length,
-            (int index) => DiscoverCard(
-              podcastItem: ref.watch(podcastProvider).feedItems[index],
-            ),
+        child: ListView.builder(
+          itemBuilder: (context, index) => DiscoverCard(
+            podcastItem: ref.watch(podcastProvider).feedPodcasts[index],
           ),
         ),
       ),

@@ -50,21 +50,17 @@ class DiscoverCard extends ConsumerWidget {
                   children: [
                     Text(
                       podcastItem.title,
-                      maxLines: 2,
                       textAlign: TextAlign.start,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(
-                      width: 200.0,
-                      child: Text(
-                        podcastItem.author,
-                        maxLines: 2,
-                        style: const TextStyle(
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    Text(
+                      podcastItem.author,
+                      maxLines: 2,
+                      style: const TextStyle(
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

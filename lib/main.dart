@@ -13,6 +13,8 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
+  // todo fix progress bar and how on the look of the UI for the discover and episodes pages
+
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {

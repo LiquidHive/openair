@@ -6,10 +6,10 @@ import 'package:openair/providers/podcast_provider.dart';
 class PlayButtonWidget extends ConsumerWidget {
   const PlayButtonWidget({
     super.key,
-    required this.rssItem,
+    required this.episodeItem,
   });
 
-  final EpisodeModel rssItem;
+  final EpisodeModel episodeItem;
 
   // Three states: Detail, buffering, and playing
 
@@ -17,7 +17,7 @@ class PlayButtonWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     const double paddingSpace = 8.0;
 
-    PlayingStatus playStatus = rssItem.playingStatus!;
+    PlayingStatus playStatus = episodeItem.playingStatus!;
 
     if (playStatus case PlayingStatus.detail) {
       return Row(
@@ -30,7 +30,7 @@ class PlayButtonWidget extends ConsumerWidget {
             child: Icon(Icons.play_arrow_rounded),
           ),
           Text(
-            ref.watch(podcastProvider).getPodcastDuration(rssItem),
+            ref.watch(podcastProvider).getPodcastDuration(episodeItem),
           ),
         ],
       );
