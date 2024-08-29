@@ -29,7 +29,7 @@ class ApiServiceProvider {
 
     Map<String, String> headers = {
       "X-Auth-Date": newUnixTime,
-      "X-Auth-Key": apiKey,
+      "X-Auth-Key": ApiKeys.apiKey,
       "Authorization": digest.toString(),
       "User-Agent": "SomethingAwesome/1.0.1"
     };
