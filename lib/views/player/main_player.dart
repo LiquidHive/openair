@@ -178,11 +178,14 @@ class MainPlayer extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  // Playback speed
                   TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      '1.0x',
-                      style: TextStyle(
+                    onPressed: () => ref
+                        .read(podcastProvider.notifier)
+                        .audioSpeedButtonClicked(),
+                    child: Text(
+                      ref.watch(podcastProvider).audioSpeedButtonLabel,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
                     ),

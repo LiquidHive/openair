@@ -63,6 +63,10 @@ class PodcastProvider with ChangeNotifier {
 
   late String? currentPodcastTimeRemaining;
 
+  String audioSpeedButtonLabel = '1.0x';
+
+  List<String> audioSpeedOptions = ['0.5x', '1.0x', '1.5x', '2.0x'];
+
   Future<void> initial(
     BuildContext context,
   ) async {
@@ -218,6 +222,14 @@ class PodcastProvider with ChangeNotifier {
     if (podcastPosition.inSeconds + 10 < podcastDuration.inSeconds) {
       player.seek(Duration(seconds: podcastPosition.inSeconds + 10));
     }
+  }
+
+  void audioSpeedButtonClicked() {
+    int index = audioSpeedOptions.indexOf(audioSpeedButtonLabel);
+    int newIndex = (index + 1) % audioSpeedOptions.length;
+    audioSpeedButtonLabel = audioSpeedOptions[newIndex];
+    player.setPlaybackRate(double.parse(audioSpeedButtonLabel.substring(0, 3)));
+    notifyListeners();
   }
 
   void updatePlaybackBar() {
