@@ -1,0 +1,5 @@
+🐛 Bug Fixes & Stability
+• Fixed scrolling behavior on the Account page
+• Simplified Google sign-in for more reliable login
+• Updated Firebase configuration for better cross-platform reliability
+• General bug fixes and stability improvements
