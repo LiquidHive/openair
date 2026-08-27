@@ -57,6 +57,8 @@ void main() async {
       androidNotificationChannelName: 'OpenAir Audio',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
+      artDownscaleWidth: 512,
+      artDownscaleHeight: 512,
     ),
   );
 

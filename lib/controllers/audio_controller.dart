@@ -1042,7 +1042,6 @@ class AudioController extends ChangeNotifier {
 
   Future<bool> importOpml(BuildContext context) async {
     String defaultFilePath;
-    FilePickerResult? result;
 
     if (Platform.isAndroid) {
       defaultFilePath = '/storage/emulated/0/Download';
@@ -1052,17 +1051,17 @@ class AudioController extends ChangeNotifier {
       defaultFilePath = await getDownloadsDirectory();
     }
 
-    if (context.mounted) {
-      result = await FilePicker.pickFiles(
-        dialogTitle: 'Import OPML',
-        type: FileType.custom,
-        allowedExtensions: ['opml'],
-        initialDirectory: defaultFilePath,
-      );
-    }
+    if (!context.mounted) return false;
+
+    final result = await FilePicker.pickFile(
+      dialogTitle: 'Import OPML',
+      type: FileType.custom,
+      allowedExtensions: ['opml'],
+      initialDirectory: defaultFilePath,
+    );
 
     if (result != null) {
-      File file = File(result.files.single.path!);
+      File file = File(result.path!);
       final xml = file.readAsStringSync();
       final doc = OpmlDocument.parse(xml);
 

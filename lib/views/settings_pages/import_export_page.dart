@@ -188,7 +188,7 @@ class ImportExportPageState extends ConsumerState<ImportExportPage> {
     final failedMsg =
         Translations.of(context).text('databaseImportFailed');
 
-    FilePickerResult? result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       dialogTitle: dialogTitle,
       type: FileType.custom,
       allowedExtensions: ['db'],
@@ -197,7 +197,7 @@ class ImportExportPageState extends ConsumerState<ImportExportPage> {
     if (result == null || !mounted) return;
 
     try {
-      File file = File(result.files.single.path!);
+      File file = File(result.path!);
       await ref.read(openAirProvider).importFromDb(file);
       if (mounted) _showNotification(successMsg);
     } catch (e) {
@@ -221,7 +221,7 @@ class ImportExportPageState extends ConsumerState<ImportExportPage> {
       await ref.read(openAirProvider).exportToDb(tempFile.path);
       final bytes = await tempFile.readAsBytes();
 
-      String? outputFile = await FilePicker.saveFile(
+      Uri? outputFile = await FilePicker.saveFile(
         dialogTitle: dialogTitle,
         fileName: fileName,
         bytes: bytes,
@@ -240,7 +240,7 @@ class ImportExportPageState extends ConsumerState<ImportExportPage> {
   }
 
   Future<void> _importOpml() async {
-    FilePickerResult? result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       dialogTitle: Translations.of(context).text('importOpml'),
       type: FileType.custom,
       allowedExtensions: ['opml', 'xml'],
@@ -248,7 +248,7 @@ class ImportExportPageState extends ConsumerState<ImportExportPage> {
 
     if (result == null || !mounted) return;
 
-    File file = File(result.files.single.path!);
+    File file = File(result.path!);
     final hiveService = ref.read(openAirProvider).hiveService;
     await hiveService.importOpml(file);
 
@@ -275,7 +275,7 @@ class ImportExportPageState extends ConsumerState<ImportExportPage> {
       await hiveService.exportOpml(tempFile.path);
       final bytes = await tempFile.readAsBytes();
 
-      String? outputFile = await FilePicker.saveFile(
+      Uri? outputFile = await FilePicker.saveFile(
         dialogTitle: dialogTitle,
         fileName: fileName,
         bytes: bytes,

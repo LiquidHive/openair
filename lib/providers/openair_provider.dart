@@ -276,7 +276,7 @@ class OpenAirProvider extends ChangeNotifier {
                   onTap: () {
                     final shareText =
                         'Check out "$episodeTitle" from $podcastTitle: $deepLink';
-                    Share.share(shareText);
+                    SharePlus.instance.share(ShareParams(text: shareText));
                     Navigator.pop(context);
                   },
                 ),
