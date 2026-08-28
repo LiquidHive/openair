@@ -1,3 +1,11 @@
+What's New in v0.18.19+68
+
+• OpenAir is now available on Android Auto: browse your subscribed podcasts and episodes hands-free while driving
+• Ask Google to play episodes by voice, e.g. "Hey Google, play [podcast name] with OpenAir"
+• Playback and artwork have been tuned for in-car use
+
+---
+
 What's New in v0.18.19+67
 
 • Improved app performance and reduced memory usage on Android (bitmap downsampling for artwork and image compression, R8 resource optimization)
