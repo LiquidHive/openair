@@ -55,6 +55,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Declare Android Auto (phone projection) support as a media app -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
         
         <!-- Workmanager for background tasks -->
         <service

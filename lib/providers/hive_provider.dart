@@ -442,11 +442,13 @@ class HiveService {
       subscription.title,
       subscription,
     );
+    ref.read(audioProvider).syncMediaLibrary();
   }
 
   Future<void> unsubscribe(String title) async {
     final box = await subscriptionBox;
     await box.delete(title);
+    ref.read(audioProvider).syncMediaLibrary();
   }
 
   Future<Map<String, SubscriptionModel>> getSubscriptions() async {
@@ -603,6 +605,7 @@ class HiveService {
         debugPrint('Error populating inbox for ${subscription.title}: $e');
       }
     }
+    ref.read(audioProvider).syncMediaLibrary();
   }
 
   // Episodes Operations:

@@ -151,6 +151,101 @@ class OpenAirAudioHandler extends BaseAudioHandler
     }
   }
 
+  // Media library snapshot used by Android Auto / the media browser. The UI
+  // keeps this up to date via [updateMediaLibrary] whenever subscriptions or
+  // episodes change.
+  List<MediaItem> _podcasts = [];
+  final Map<String, List<MediaItem>> _episodesByPodcastId = {};
+  final Map<String, MediaItem> _episodesById = {};
+  final Map<String, String> _urlsByGuid = {};
+
+  void updateMediaLibrary({
+    required List<MediaItem> podcasts,
+    required Map<String, List<MediaItem>> episodesByPodcast,
+    required Map<String, String> urlsByGuid,
+  }) {
+    _podcasts = podcasts;
+    _episodesByPodcastId
+      ..clear()
+      ..addAll(episodesByPodcast);
+    _episodesById.clear();
+    for (final episodes in _episodesByPodcastId.values) {
+      for (final episode in episodes) {
+        _episodesById[episode.id] = episode;
+      }
+    }
+    _urlsByGuid
+      ..clear()
+      ..addAll(urlsByGuid);
+  }
+
+  @override
+  Future<List<MediaItem>> getChildren(String parentMediaId,
+      [Map<String, dynamic>? options]) async {
+    if (parentMediaId.isEmpty || parentMediaId == 'root') {
+      return _podcasts;
+    }
+    return _episodesByPodcastId[parentMediaId] ?? [];
+  }
+
+  @override
+  Future<List<MediaItem>> search(String query,
+      [Map<String, dynamic>? extras]) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return [];
+
+    final matches = _episodesById.values
+        .where((item) =>
+            item.title.toLowerCase().contains(q) ||
+            (item.artist?.toLowerCase().contains(q) ?? false) ||
+            (item.album?.toLowerCase().contains(q) ?? false))
+        .toList()
+      ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+    return matches.take(50).toList();
+  }
+
+  @override
+  Future<void> playFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {
+    final episodes = _episodesByPodcastId[mediaId];
+    if (episodes != null && episodes.isNotEmpty) {
+      await _playFromLibraryItem(episodes.first);
+      return;
+    }
+
+    final episode = _episodesById[mediaId];
+    if (episode != null) {
+      await _playFromLibraryItem(episode);
+    }
+  }
+
+  @override
+  Future<void> playFromSearch(String query,
+      [Map<String, dynamic>? extras]) async {
+    final results = await search(query, extras);
+    if (results.isNotEmpty) {
+      await _playFromLibraryItem(results.first);
+    }
+  }
+
+  Future<void> _playFromLibraryItem(MediaItem episode) async {
+    final url = _urlsByGuid[episode.id];
+    if (url == null || url.isEmpty) {
+      debugPrint('AudioHandler: No URL known for ${episode.id}');
+      return;
+    }
+    await setMediaItem(
+      id: episode.id,
+      title: episode.title,
+      artist: episode.artist ?? '',
+      album: episode.album,
+      artUri: episode.artUri?.toString(),
+      duration: episode.duration,
+    );
+    await playFromUrl(url);
+  }
+
   Future<void> playFromFile(String filePath,
       {Duration? initialPosition}) async {
     try {

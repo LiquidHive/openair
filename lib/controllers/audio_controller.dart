@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:audio_service/audio_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -948,6 +949,111 @@ class AudioController extends ChangeNotifier {
     });
 
     _restoreLastPlayedEpisode();
+
+    // Push the local media library to the audio handler so Android Auto and
+    // assistant voice commands can browse and play subscribed content.
+    syncMediaLibrary();
+  }
+
+  Future<void> syncMediaLibrary() async {
+    final hiveService = ref.read(hiveServiceProvider);
+
+    final subscriptionsMap = await hiveService.getSubscriptions();
+    final allEpisodes = await hiveService.getEpisodes();
+
+    final podcasts = <MediaItem>[];
+    final episodesByPodcast = <String, List<MediaItem>>{};
+    final urlsByGuid = <String, String>{};
+
+    for (final subscription in subscriptionsMap.values) {
+      final podcastId = subscription.id.toString();
+      podcasts.add(MediaItem(
+        id: podcastId,
+        title: subscription.title,
+        artist: subscription.author,
+        album: null,
+        artUri: _parseArtUri(
+            subscription.artwork.isNotEmpty
+                ? subscription.artwork
+                : subscription.imageUrl),
+        duration: null,
+      ));
+      episodesByPodcast[podcastId] = [];
+    }
+
+    for (final episode in allEpisodes) {
+      final podcastId =
+          ((episode['podcast'] as Map?)?['id'] ?? episode['podcastId'])
+              ?.toString();
+      final guid = episode['guid']?.toString();
+      final url = episode['enclosureUrl']?.toString() ?? '';
+      if (podcastId == null ||
+          podcastId.isEmpty ||
+          guid == null ||
+          guid.isEmpty ||
+          url.isEmpty) {
+        continue;
+      }
+
+      final podcastTitle =
+          ((episode['podcast'] as Map?)?['title'] ?? episode['podcastTitle'])
+              ?.toString();
+      final author = episode['author']?.toString();
+      final title = episode['title']?.toString() ?? 'Unknown';
+      final image = episode['image']?.toString() ??
+          episode['feedImage']?.toString() ??
+          '';
+
+      final item = MediaItem(
+        id: guid,
+        title: title,
+        artist: (author != null && author.isNotEmpty) ? author : podcastTitle,
+        album: (podcastTitle != null && podcastTitle.isNotEmpty)
+            ? podcastTitle
+            : null,
+        artUri: _parseArtUri(image),
+        duration: _parseEpisodeDuration(episode['duration']),
+      );
+
+      (episodesByPodcast[podcastId] ??= []).add(item);
+      urlsByGuid[guid] = url;
+    }
+
+    _audioHandler.updateMediaLibrary(
+      podcasts: podcasts,
+      episodesByPodcast: episodesByPodcast,
+      urlsByGuid: urlsByGuid,
+    );
+  }
+
+  Uri? _parseArtUri(String? url) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return Uri.parse(url);
+    }
+    return null;
+  }
+
+  Duration? _parseEpisodeDuration(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is int) return Duration(seconds: raw);
+
+    final parts = raw.toString().split(':');
+    if (parts.length == 3) {
+      return Duration(
+        hours: int.tryParse(parts[0]) ?? 0,
+        minutes: int.tryParse(parts[1]) ?? 0,
+        seconds: int.tryParse(parts[2]) ?? 0,
+      );
+    }
+    if (parts.length == 2) {
+      return Duration(
+        minutes: int.tryParse(parts[0]) ?? 0,
+        seconds: int.tryParse(parts[1]) ?? 0,
+      );
+    }
+    final seconds = int.tryParse(parts[0]);
+    return seconds != null ? Duration(seconds: seconds) : null;
   }
 
   Future<void> _restoreLastPlayedEpisode() async {
