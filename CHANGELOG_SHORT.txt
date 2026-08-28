@@ -1,3 +1,10 @@
+What's New in v0.18.20+70
+
+• Android Auto: the next/previous track buttons now move between episodes instead of doing nothing
+• Media-button and headset next/previous now skip episodes with your queue, matching the on-screen controls
+
+---
+
 What's New in v0.18.19+69
 
 • Fixed podcast loading on devices with VPN or custom Private DNS active
