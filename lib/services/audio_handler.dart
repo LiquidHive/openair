@@ -275,13 +275,26 @@ class OpenAirAudioHandler extends BaseAudioHandler
   @override
   Future<void> setSpeed(double speed) => player.setSpeed(speed);
 
+  Future<void> Function()? onSkipToNext;
+  Future<void> Function()? onSkipToPrevious;
+
   @override
   Future<void> skipToNext() async {
+    final callback = onSkipToNext;
+    if (callback != null) {
+      await callback();
+      return;
+    }
     await super.skipToNext();
   }
 
   @override
   Future<void> skipToPrevious() async {
+    final callback = onSkipToPrevious;
+    if (callback != null) {
+      await callback();
+      return;
+    }
     await super.skipToPrevious();
   }
 

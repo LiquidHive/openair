@@ -863,8 +863,17 @@ class AudioController extends ChangeNotifier {
 
   Future<void> initAudio(BuildContext context) => initializeAudio(context);
 
+  void updateAppContext(BuildContext? context) {
+    if (context != null && context.mounted) {
+      _appContext = context;
+    }
+  }
+
   Future<void> initializeAudio(BuildContext context) async {
     _appContext = context;
+
+    _audioHandler.onSkipToNext = () => playNextEpisode(_appContext);
+    _audioHandler.onSkipToPrevious = () => playPreviousEpisode(_appContext);
 
     // Set up position listener
     _audioHandler.positionStream.listen((Duration position) {
@@ -1191,7 +1200,8 @@ class AudioController extends ChangeNotifier {
 
   DateTime? _lastPreviousTapTime;
 
-  Future<void> playPreviousEpisode(BuildContext context) async {
+  Future<void> playPreviousEpisode([BuildContext? context]) async {
+    context ??= _appContext;
     final now = DateTime.now();
     if (_lastPreviousTapTime != null &&
         now.difference(_lastPreviousTapTime!) <
@@ -1242,7 +1252,7 @@ class AudioController extends ChangeNotifier {
         }
         currentPodcast = previousEpisode['podcast'];
 
-        if (context.mounted) {
+        if (context != null && context.mounted) {
           await queuePlayButtonClicked(
             previousEpisode,
             previousEpisode['playerPosition'],
@@ -1265,7 +1275,8 @@ class AudioController extends ChangeNotifier {
 
   bool _isNavigatingPodcast = false;
 
-  Future<void> _playPreviousFromPodcast(BuildContext context) async {
+  Future<void> _playPreviousFromPodcast(BuildContext? context) async {
+    context ??= _appContext;
     if (_isNavigatingPodcast) return;
     _isNavigatingPodcast = true;
 
@@ -1292,7 +1303,7 @@ class AudioController extends ChangeNotifier {
       currentEpisode = previousEpisode;
       currentEpisode!['author'] = currentPodcast!.author;
 
-      if (context.mounted) {
+      if (context != null && context.mounted) {
         await queuePlayButtonClicked(
           previousEpisode,
           Duration.zero,
@@ -1489,7 +1500,8 @@ class AudioController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> playNextEpisode(BuildContext context) async {
+  Future<void> playNextEpisode([BuildContext? context]) async {
+    context ??= _appContext;
     if (currentEpisode == null || currentEpisode!.isEmpty) return;
 
     final hiveService = ref.read(hiveServiceProvider);
@@ -1537,7 +1549,7 @@ class AudioController extends ChangeNotifier {
       }
       currentPodcast = nextEpisodeData['podcast'];
 
-      if (context.mounted) {
+      if (context != null && context.mounted) {
         await queuePlayButtonClicked(
             nextEpisodeData, nextEpisodeData['playerPosition'], context);
       }
@@ -1599,8 +1611,9 @@ class AudioController extends ChangeNotifier {
     return [];
   }
 
-  Future<void> _playNextFromPodcast(BuildContext context,
+  Future<void> _playNextFromPodcast(BuildContext? context,
       {bool stopOnEnd = false}) async {
+    context ??= _appContext;
     if (_isNavigatingPodcast) return;
     _isNavigatingPodcast = true;
 
@@ -1632,7 +1645,7 @@ class AudioController extends ChangeNotifier {
       currentEpisode = nextEpisode;
       currentEpisode!['author'] = currentPodcast!.author;
 
-      if (context.mounted) {
+      if (context != null && context.mounted) {
         await queuePlayButtonClicked(
           nextEpisode,
           Duration.zero,

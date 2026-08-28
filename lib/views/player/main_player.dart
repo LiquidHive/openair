@@ -25,6 +25,12 @@ class MainPlayer extends ConsumerStatefulWidget {
 class MainPlayerState extends ConsumerState<MainPlayer> {
   final double imageSize = 250.0;
 
+  @override
+  void initState() {
+    super.initState();
+    ref.read(audioProvider).updateAppContext(context);
+  }
+
   double _artworkSize(BuildContext context) {
     final isWide = !Platform.isAndroid && !Platform.isIOS ||
         wideScreenMinWidth < MediaQuery.sizeOf(context).width;
