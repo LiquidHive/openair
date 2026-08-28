@@ -13,7 +13,6 @@ final class Env {
   @EnviedField(varName: 'PODCAST_USER_AGENT', obfuscate: true)
   static String podcastUserAgent = _Env.podcastUserAgent;
 
-
   @EnviedField(varName: 'FYYD_ACCESS_TOKEN', obfuscate: true)
   static String fyydAccessToken = _Env.fyydAccessToken;
 
@@ -26,19 +25,18 @@ final class Env {
   @EnviedField(varName: 'DISCORD_URL', obfuscate: true)
   static String discordUrl = _Env.discordUrl;
 
-  @EnviedField(varName: 'GITHUB_ISSUES_URL', obfuscate: true)
+  @EnviedField(varName: 'URL_GITHUB_ISSUES', obfuscate: true)
   static String githubIssuesUrl = _Env.githubIssuesUrl;
 
-  @EnviedField(varName: 'GITHUB_DISCUSSION_URL', obfuscate: true)
+  @EnviedField(varName: 'URL_GITHUB_DISCUSSION', obfuscate: true)
   static String githubDiscussionUrl = _Env.githubDiscussionUrl;
 
   @EnviedField(varName: 'PRIVACY_POLICY', obfuscate: true)
   static String privacyPolicy = _Env.privacyPolicy;
 
-  @EnviedField(varName: 'GITHUB_URL', obfuscate: true)
+  @EnviedField(varName: 'URL_GITHUB', obfuscate: true)
   static String githubUrl = _Env.githubUrl;
 
   @EnviedField(varName: 'TERMS_OF_SERVICE', obfuscate: true)
   static String termsOfService = _Env.termsOfService;
-
 }

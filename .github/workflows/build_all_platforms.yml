@@ -59,6 +59,24 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq libgtk-3-dev libwebkit2gtk-4.1-dev libsecret-1-dev libjsoncpp-dev liblzma-dev ninja-build pkg-config
       - run: flutter pub get
+      - name: Regenerate env.g.dart from secrets
+        shell: bash
+        run: |
+          cat > .env <<'EOF'
+          PODCAST_INDEX_API_KEY="${{ secrets.PODCAST_INDEX_API_KEY }}"
+          PODCAST_INDEX_API_SECRET="${{ secrets.PODCAST_INDEX_API_SECRET }}"
+          PODCAST_USER_AGENT="${{ secrets.PODCAST_USER_AGENT }}"
+          FYYD_ACCESS_TOKEN="${{ secrets.FYYD_ACCESS_TOKEN }}"
+          PAYPAL_URL="${{ secrets.PAYPAL_URL }}"
+          DONATE_WITH_KOFI_URL="${{ secrets.DONATE_WITH_KOFI_URL }}"
+          DISCORD_URL="${{ secrets.DISCORD_URL }}"
+          URL_GITHUB_ISSUES="${{ secrets.URL_GITHUB_ISSUES }}"
+          URL_GITHUB_DISCUSSION="${{ secrets.URL_GITHUB_DISCUSSION }}"
+          PRIVACY_POLICY="${{ secrets.PRIVACY_POLICY }}"
+          URL_GITHUB="${{ secrets.URL_GITHUB }}"
+          TERMS_OF_SERVICE="${{ secrets.TERMS_OF_SERVICE }}"
+          EOF
+          dart run build_runner build --delete-conflicting-outputs
       - run: flutter build linux --release
       - name: Package
         run: |
@@ -91,6 +109,24 @@ jobs:
           sudo chmod +x /usr/local/bin/linuxdeploy
 
       - run: flutter pub get
+      - name: Regenerate env.g.dart from secrets
+        shell: bash
+        run: |
+          cat > .env <<'EOF'
+          PODCAST_INDEX_API_KEY="${{ secrets.PODCAST_INDEX_API_KEY }}"
+          PODCAST_INDEX_API_SECRET="${{ secrets.PODCAST_INDEX_API_SECRET }}"
+          PODCAST_USER_AGENT="${{ secrets.PODCAST_USER_AGENT }}"
+          FYYD_ACCESS_TOKEN="${{ secrets.FYYD_ACCESS_TOKEN }}"
+          PAYPAL_URL="${{ secrets.PAYPAL_URL }}"
+          DONATE_WITH_KOFI_URL="${{ secrets.DONATE_WITH_KOFI_URL }}"
+          DISCORD_URL="${{ secrets.DISCORD_URL }}"
+          URL_GITHUB_ISSUES="${{ secrets.URL_GITHUB_ISSUES }}"
+          URL_GITHUB_DISCUSSION="${{ secrets.URL_GITHUB_DISCUSSION }}"
+          PRIVACY_POLICY="${{ secrets.PRIVACY_POLICY }}"
+          URL_GITHUB="${{ secrets.URL_GITHUB }}"
+          TERMS_OF_SERVICE="${{ secrets.TERMS_OF_SERVICE }}"
+          EOF
+          dart run build_runner build --delete-conflicting-outputs
       - run: flutter build linux --release
 
       - name: Bundle AppImage
@@ -126,6 +162,24 @@ jobs:
         with:
           cmake-version: '3.30.x'
       - run: flutter pub get
+      - name: Regenerate env.g.dart from secrets
+        shell: bash
+        run: |
+          cat > .env <<'EOF'
+          PODCAST_INDEX_API_KEY="${{ secrets.PODCAST_INDEX_API_KEY }}"
+          PODCAST_INDEX_API_SECRET="${{ secrets.PODCAST_INDEX_API_SECRET }}"
+          PODCAST_USER_AGENT="${{ secrets.PODCAST_USER_AGENT }}"
+          FYYD_ACCESS_TOKEN="${{ secrets.FYYD_ACCESS_TOKEN }}"
+          PAYPAL_URL="${{ secrets.PAYPAL_URL }}"
+          DONATE_WITH_KOFI_URL="${{ secrets.DONATE_WITH_KOFI_URL }}"
+          DISCORD_URL="${{ secrets.DISCORD_URL }}"
+          URL_GITHUB_ISSUES="${{ secrets.URL_GITHUB_ISSUES }}"
+          URL_GITHUB_DISCUSSION="${{ secrets.URL_GITHUB_DISCUSSION }}"
+          PRIVACY_POLICY="${{ secrets.PRIVACY_POLICY }}"
+          URL_GITHUB="${{ secrets.URL_GITHUB }}"
+          TERMS_OF_SERVICE="${{ secrets.TERMS_OF_SERVICE }}"
+          EOF
+          dart run build_runner build --delete-conflicting-outputs
       - run: flutter build windows --release
         env:
           CL: /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS
@@ -174,6 +228,24 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       - run: flutter pub get
+      - name: Regenerate env.g.dart from secrets
+        shell: bash
+        run: |
+          cat > .env <<'EOF'
+          PODCAST_INDEX_API_KEY="${{ secrets.PODCAST_INDEX_API_KEY }}"
+          PODCAST_INDEX_API_SECRET="${{ secrets.PODCAST_INDEX_API_SECRET }}"
+          PODCAST_USER_AGENT="${{ secrets.PODCAST_USER_AGENT }}"
+          FYYD_ACCESS_TOKEN="${{ secrets.FYYD_ACCESS_TOKEN }}"
+          PAYPAL_URL="${{ secrets.PAYPAL_URL }}"
+          DONATE_WITH_KOFI_URL="${{ secrets.DONATE_WITH_KOFI_URL }}"
+          DISCORD_URL="${{ secrets.DISCORD_URL }}"
+          URL_GITHUB_ISSUES="${{ secrets.URL_GITHUB_ISSUES }}"
+          URL_GITHUB_DISCUSSION="${{ secrets.URL_GITHUB_DISCUSSION }}"
+          PRIVACY_POLICY="${{ secrets.PRIVACY_POLICY }}"
+          URL_GITHUB="${{ secrets.URL_GITHUB }}"
+          TERMS_OF_SERVICE="${{ secrets.TERMS_OF_SERVICE }}"
+          EOF
+          dart run build_runner build --delete-conflicting-outputs
       - run: |
           flutter build apk --release --android-skip-build-dependency-validation
           flutter build appbundle --release --android-skip-build-dependency-validation

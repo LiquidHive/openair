@@ -28,9 +28,9 @@ variables:
 
   DISCORD_URL: "https://discord.gg/cxy9AmMaYS"
 
-  GITHUB_ISSUES_URL: "https://github.com/OpenAir-Podcast/OpenAir/issues"
+  URL_GITHUB_ISSUES: "https://github.com/OpenAir-Podcast/OpenAir/issues"
 
-  GITHUB_DISCUSSION_URL: "https://github.com/OpenAir-Podcast/OpenAir/discussions/categories/q-a"
+  URL_GITHUB_DISCUSSION: "https://github.com/OpenAir-Podcast/OpenAir/discussions/categories/q-a"
 
   GITHUB_PROJECT_URL: "https://github.com/OpenAir-Podcast/OpenAir"
 
